@@ -1,0 +1,23 @@
+# WE Tools 网站爬虫规则
+# 网站: https://wetools.wctw.fun
+# 更新日期: 2025-04-11
+
+User-agent: *
+# 允许访问的目录和文件
+Allow: /
+Allow: /index.html
+Allow: /assets/
+Allow: /images/
+Allow: /static/
+
+# 禁止访问的目录和文件
+Disallow: /api/
+Disallow: /admin/
+Disallow: /private/
+Disallow: /user/settings/
+
+# 设置爬取速率
+Crawl-delay: 5
+
+# 站点地图
+Sitemap: https://wetools.wctw.fun/sitemap.xml
