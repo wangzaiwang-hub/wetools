@@ -435,8 +435,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       markQQLoginAttempt();
       
       // 保存当前路径，以便在登录后返回
-      const currentPath = window.location.pathname;
-      localStorage.setItem('qq_login_from', currentPath);
+let redirectPath = window.location.pathname;
+      
+// 如果当前在登录页或注册页，登录后应该跳转到主页，而不是回到登录页
+if (['/login', '/register'].includes(redirectPath)) {
+  redirectPath = '/';
+}
+      
+localStorage.setItem('qq_login_from', redirectPath);
       
       // 生成随机state防止CSRF攻击
       const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
