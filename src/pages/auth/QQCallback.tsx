@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase';
 
 const QQCallback: React.FC = () => {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<any | null>(null);
   const [debugInfo, setDebugInfo] = useState<string[]>(['日志初始化...']);
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -94,7 +94,7 @@ const QQCallback: React.FC = () => {
         const errorMessage = err instanceof Error ? err.message : '未知错误';
         addDebugInfo(`处理过程中发生严重错误: ${errorMessage}`);
         console.error('QQ登录回调处理失败详情:', err);
-        setError(errorMessage);
+        setError(err);
         toast.error(`登录失败: ${errorMessage}`);
       } finally {
         setLoading(false);
@@ -118,11 +118,19 @@ const QQCallback: React.FC = () => {
   if (error) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 p-4">
-        <div className="bg-white shadow-xl rounded-lg p-6 md:p-8 max-w-md w-full">
+        <div className="bg-white shadow-xl rounded-lg p-6 md:p-8 max-w-lg w-full">
           <h2 className="text-xl font-bold text-red-700 mb-4 text-center">QQ登录失败</h2>
-          <p className="text-red-600 mb-5 text-center whitespace-pre-wrap">{error}</p>
-          <details className="mb-6 w-full">
-            <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-800 font-medium">显示调试日志</summary>
+          <p className="text-red-600 mb-5 text-center whitespace-pre-wrap">{error.message || '一个未知错误发生了'}</p>
+          
+          <div className="mt-4">
+            <p className="text-sm font-bold text-gray-800">详细技术信息:</p>
+            <pre className="mt-2 bg-gray-100 p-3 rounded-md text-xs font-mono text-gray-700 max-h-60 overflow-y-auto border border-gray-300 whitespace-pre-wrap break-all">
+              {JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}
+            </pre>
+          </div>
+
+          <details className="mb-6 w-full mt-4">
+            <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-800 font-medium">显示原始调试日志</summary>
             <div className="mt-2 bg-gray-50 p-3 rounded-md text-xs font-mono text-gray-700 max-h-48 overflow-y-auto border border-gray-200">
               {debugInfo.map((line, i) => (
                 <div key={i} className="whitespace-pre-wrap break-all py-0.5">{line}</div>
