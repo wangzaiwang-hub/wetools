@@ -178,6 +178,48 @@ export const getQQUserInfo = async (): Promise<QQUserInfo> => {
 };
 
 /**
+ * 尝试用新旧两种密码登录，并在成功后将旧密码用户迁移到新密码
+ */
+const loginAndMigratePassword = async (email: string, newPassword: string, oldPassword: string) => {
+  // 1. 尝试使用新密码格式登录
+  let { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password: newPassword,
+  });
+
+  // 2. 如果因为凭据无效而失败，则尝试旧密码格式
+  if (error && error.message.includes('Invalid login credentials')) {
+    console.warn('[QQ Connect] 新密码登录失败，回退到旧密码格式尝试...');
+    const { data: oldAuthData, error: oldAuthError } = await supabase.auth.signInWithPassword({
+      email,
+      password: oldPassword,
+    });
+
+    // 如果旧密码也失败了，就彻底放弃
+    if (oldAuthError) {
+      console.error('[QQ Connect] 旧密码登录也失败:', oldAuthError);
+      // 返回最初的新密码登录错误，因为它更具代表性
+      throw error;
+    }
+
+    // 3. 旧密码登录成功，立即更新到新密码以完成迁移
+    console.log('[QQ Connect] 旧密码登录成功！正在更新密码到新格式...');
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+    if (updateError) {
+      // 更新失败不应阻塞登录流程，仅记录警告
+      console.error('[QQ Connect] 密码更新失败，但用户仍可登录:', updateError);
+    }
+    
+    // 返回旧密码登录成功时的数据
+    return oldAuthData;
+  }
+  
+  // 如果是其他错误或首次就成功，直接返回结果
+  if (error) throw error;
+  return data;
+};
+
+/**
  * 使用从Edge Function获取的QQ信息登录或注册到Supabase
  * @param userInfo QQ用户信息，必须包含openId
  */
@@ -187,8 +229,9 @@ export const signInWithQQ = async (userInfo: QQUserInfo) => {
     throw new Error('无法注册或登录：OpenID缺失。');
   }
   const email = `${userInfo.openId}@qq.wetools.auth`; 
-  // 使用更健壮的密码，以满足可能的密码策略
-  const password = `qq_${userInfo.openId}_secret`; 
+  // 定义新旧两种密码格式
+  const newPassword = `qq_${userInfo.openId}_secret`; 
+  const oldPassword = userInfo.openId;
 
   // 检查用户是否已存在 - 改为调用RPC函数
   const { data: userExists, error: rpcError } = await supabase.rpc(
@@ -204,30 +247,28 @@ export const signInWithQQ = async (userInfo: QQUserInfo) => {
   // 如果用户已存在，直接登录
   if (userExists) {
     console.log('[QQ Connect] 用户已存在，尝试登录...');
-    const { data: sessionData, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (signInError) {
-      console.error('[QQ Connect] Supabase signInWithPassword 错误:', signInError);
-      throw new Error(`登录失败: ${signInError.message}`);
+    try {
+      const sessionData = await loginAndMigratePassword(email, newPassword, oldPassword);
+      console.log('[QQ Connect] 用户登录成功。');
+      return { isNewUser: false, session: sessionData.session, user: sessionData.user };
+    } catch (e: any) {
+      throw new Error(`登录失败: ${e.message}`);
     }
-    console.log('[QQ Connect] 用户登录成功。');
-    return { isNewUser: false, session: sessionData.session, user: sessionData.user };
   }
 
   // 如果用户不存在，注册新用户
   console.log('[QQ Connect] 用户不存在，尝试注册新用户...');
+  const saneNickname = sanitizeNickname(userInfo.nickname); // 使用净化后的昵称
+
   const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
     email,
-    password,
+    password: newPassword, // 新用户统一使用新密码注册
     options: {
       data: { 
-        nickname: userInfo.nickname,
+        nickname: saneNickname,
         avatar_url: userInfo.figureurl_qq_2,
         qq_open_id: userInfo.openId, 
-        full_name: userInfo.nickname, // 使用昵称作为全名
+        full_name: saneNickname, // 使用净化后的昵称作为全名
         provider: 'qq'
       }
     }
@@ -238,11 +279,13 @@ export const signInWithQQ = async (userInfo: QQUserInfo) => {
     // 如果错误是用户已存在（可能由于竞争条件），尝试再次登录
     if (signUpError.message.includes('User already registered')) {
         console.warn('[QQ Connect] 注册失败，因为用户已存在（可能为竞争条件），将重试登录...');
-        const { data: sessionData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-        if (signInError) {
-          throw new Error(`重试登录失败: ${signInError.message}`);
+        try {
+          const sessionData = await loginAndMigratePassword(email, newPassword, oldPassword);
+          console.log('[QQ Connect] 重试登录成功。');
+          return { isNewUser: false, session: sessionData.session, user: sessionData.user };
+        } catch (e: any) {
+          throw new Error(`重试登录失败: ${e.message}`);
         }
-        return { isNewUser: false, session: sessionData.session, user: sessionData.user };
     }
     // 直接抛出从Supabase收到的原始错误对象，以便UI层显示详细信息
     throw signUpError;
@@ -259,10 +302,10 @@ export const signInWithQQ = async (userInfo: QQUserInfo) => {
       .from('user_profiles') 
       .insert({
         user_id: signUpData.user.id, 
-        nickname: userInfo.nickname,
+        nickname: saneNickname,
         avatar_url: userInfo.figureurl_qq_2,
         qq_open_id: userInfo.openId,
-        full_name: userInfo.nickname 
+        full_name: saneNickname 
       });
 
     if (profileError) {
