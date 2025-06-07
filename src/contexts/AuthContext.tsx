@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase, recoverSession } from '../lib/supabase';
+import { supabase, recoverSession, markQQLoginAttempt } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
 import toast from 'react-hot-toast';
 
@@ -432,24 +432,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithQQ = async () => {
     try {
+      // 标记QQ登录尝试，用于会话恢复机制
+      markQQLoginAttempt();
+      
+      // 保存当前路径，以便在登录后返回
+      const currentPath = window.location.pathname;
+      localStorage.setItem('qq_login_from', currentPath);
+      
       // 生成随机state防止CSRF攻击
-      const state = Math.random().toString(36).substring(2);
+      const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
       localStorage.setItem('qq_state', state);
-      localStorage.setItem('qq_login_from', window.location.pathname);
 
       // 构建QQ登录URL
+      const qqAppId = import.meta.env.VITE_QQ_APP_ID;
+      const qqRedirectUri = import.meta.env.VITE_QQ_REDIRECT_URI;
+      
+      if (!qqAppId || !qqRedirectUri) {
+        console.error('QQ登录环境变量缺失:', { qqAppId, qqRedirectUri });
+        toast.error('系统配置错误，无法连接QQ登录，请联系管理员');
+        return;
+      }
+      
+      console.log('正在准备QQ登录...', {
+        state: state.substring(0, 5) + '...',
+        returnPath: currentPath,
+        appId: qqAppId
+      });
+
       const qqLoginUrl = `https://graph.qq.com/oauth2.0/authorize?` +
         `response_type=code&` +
-        `client_id=${import.meta.env.VITE_QQ_APP_ID}&` +
-        `redirect_uri=${encodeURIComponent(import.meta.env.VITE_QQ_REDIRECT_URI)}&` +
+        `client_id=${qqAppId}&` +
+        `redirect_uri=${encodeURIComponent(qqRedirectUri)}&` +
         `state=${state}&` +
         `scope=get_user_info`;
-
-      // 跳转到QQ登录页面
-      window.location.href = qqLoginUrl;
+      
+      // 显示加载提示
+      toast.loading('正在跳转到QQ登录页面...', { duration: 2000 });
+      
+      // 延迟500ms再跳转，让用户看到提示
+      setTimeout(() => {
+        // 跳转到QQ登录页面
+        window.location.href = qqLoginUrl;
+      }, 500);
     } catch (error) {
       console.error('QQ登录跳转失败:', error);
-      toast.error('QQ登录失败，请重试');
+      toast.error('QQ登录失败，请重试或选择其他登录方式');
     }
   };
 
