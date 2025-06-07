@@ -195,6 +195,34 @@ export const signInWithQQ = async (userInfo: QQUserInfo) => {
     logQQConnect('signInWithQQ失败: OpenID缺失');
     throw new Error('无法注册或登录：OpenID缺失。');
   }
+  
+  // 检查是否为应急模式OpenID (qq_开头的特殊ID)
+  const isEmergencyMode = userInfo.openId.startsWith('qq_');
+  
+  // 保存最近使用的OpenID以帮助检测重复尝试
+  try {
+    // 仅在应急模式下存储
+    if (isEmergencyMode) {
+      const lastUsedId = localStorage.getItem('last_used_qq_openid');
+      const timestamp = Date.now();
+      
+      // 如果存在最近使用的ID，检查是否与当前ID相同且距离上次使用不到1分钟
+      if (lastUsedId && lastUsedId.split('|')[0] === userInfo.openId) {
+        const lastTime = parseInt(lastUsedId.split('|')[1] || '0');
+        // 如果是在1分钟内的重复尝试，在OpenID上添加时间戳后缀以避免冲突
+        if (timestamp - lastTime < 60000) {
+          logQQConnect('检测到短时间内重复使用相同OpenID，添加时间戳后缀');
+          userInfo.openId = `${userInfo.openId}_${timestamp}`;
+        }
+      }
+      
+      // 更新最近使用的ID
+      localStorage.setItem('last_used_qq_openid', `${userInfo.openId}|${timestamp}`);
+    }
+  } catch (e) {
+    // 忽略存储错误
+  }
+  
   const email = `${userInfo.openId}@qq.wetools.auth`; 
   const password = userInfo.openId; 
 
