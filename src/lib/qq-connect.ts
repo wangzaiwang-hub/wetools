@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import toast from 'react-hot-toast';
 
 // 引入类型声明 - 确保项目中有这个文件或对应的类型定义
 /// <reference path="../types/qq-connect.d.ts" />
@@ -186,7 +187,8 @@ export const signInWithQQ = async (userInfo: QQUserInfo) => {
     throw new Error('无法注册或登录：OpenID缺失。');
   }
   const email = `${userInfo.openId}@qq.wetools.auth`; 
-  const password = userInfo.openId; // 使用openId作为密码是一个简化实现
+  // 使用更健壮的密码，以满足可能的密码策略
+  const password = `qq_${userInfo.openId}_secret`; 
 
   // 检查用户是否已存在 - 改为调用RPC函数
   const { data: userExists, error: rpcError } = await supabase.rpc(
@@ -246,23 +248,30 @@ export const signInWithQQ = async (userInfo: QQUserInfo) => {
   console.log('[QQ Connect] Supabase auth user创建成功, User ID:', signUpData.user.id);
 
   // 在user_profiles表中创建对应的资料
-  console.log('[QQ Connect] 正在创建用户资料 (user_profiles)...');
-  const { error: profileError } = await supabase
-    .from('user_profiles') 
-    .insert({
-      user_id: signUpData.user.id, 
-      nickname: userInfo.nickname,
-      avatar_url: userInfo.figureurl_qq_2,
-      qq_open_id: userInfo.openId,
-      full_name: userInfo.nickname 
-    });
+  try {
+    console.log('[QQ Connect] 正在创建用户资料 (user_profiles)...');
+    const { error: profileError } = await supabase
+      .from('user_profiles') 
+      .insert({
+        user_id: signUpData.user.id, 
+        nickname: userInfo.nickname,
+        avatar_url: userInfo.figureurl_qq_2,
+        qq_open_id: userInfo.openId,
+        full_name: userInfo.nickname 
+      });
 
-  if (profileError) {
-    // 即使这里失败，认证用户也已经创建了，所以只记录警告
-    console.error('[QQ Connect] 创建用户资料 (user_profiles) 失败:', profileError);
+    if (profileError) {
+      // 即使这里失败，认证用户也已经创建了，所以只记录警告
+      console.error('[QQ Connect] 创建用户资料 (user_profiles) 失败:', profileError);
+      toast.error('登录成功，但同步部分用户资料失败，您可以在个人中心手动修改。');
+    } else {
+      console.log('[QQ Connect] 用户资料创建成功。');
+    }
+  } catch(profileCreationError) {
+      console.error('[QQ Connect] 创建用户资料时发生未知异常:', profileCreationError);
+      toast.error('登录成功，但同步用户资料时发生异常。');
   }
   
-  console.log('[QQ Connect] 用户资料创建成功。');
   return { isNewUser: true, session: signUpData.session, user: signUpData.user };
 };
 
