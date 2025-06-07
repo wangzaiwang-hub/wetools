@@ -28,7 +28,20 @@ const Terms = () => {
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-lg font-semibold text-gray-800">2. 用户义务</h2>
+              <h2 className="text-lg font-semibold text-gray-800">2. 用户账户</h2>
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
+                <p className="mb-2">
+                  您可能需要注册一个账户才能使用我们的部分服务。您对账户下发生的所有活动负有全部责任。
+                </p>
+                <p>
+                  当您使用如QQ等第三方服务进行注册和登录时，即表示您同意授权我们访问和使用您在该第三方平台的公开信息（如昵称、头像），具体细节请参阅我们的
+                  <Link to="/privacy" className="font-semibold text-blue-600 hover:text-blue-800">《隐私政策》</Link>。
+                </p>
+              </div>
+            </section>
+
+            <section className="space-y-2">
+              <h2 className="text-lg font-semibold text-gray-800">3. 用户义务</h2>
               <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="font-medium text-red-800 mb-2">用户在使用本网站服务时必须遵守以下规定：</p>
                 <ul className="list-disc pl-8 space-y-2 text-red-700">
@@ -42,7 +55,7 @@ const Terms = () => {
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-lg font-semibold text-gray-800">3. 知识产权</h2>
+              <h2 className="text-lg font-semibold text-gray-800">4. 知识产权</h2>
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-blue-800">
                   <span className="font-medium">本网站所有原创内容的知识产权归 WE Tools 所有。</span>
@@ -52,7 +65,7 @@ const Terms = () => {
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-lg font-semibold text-gray-800">4. 免责声明</h2>
+              <h2 className="text-lg font-semibold text-gray-800">5. 免责声明</h2>
               <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-red-800 font-medium">
                   本网站对所提供的软件和服务不作任何明示或暗示的保证。用户理解并同意自行承担使用本网站服务的全部风险。
@@ -61,7 +74,7 @@ const Terms = () => {
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-lg font-semibold text-gray-800">5. 服务变更、中断或终止</h2>
+              <h2 className="text-lg font-semibold text-gray-800">6. 服务变更、中断或终止</h2>
               <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
                 <p className="text-orange-800 mb-2">如发生下列任何一种情形，本网站有权随时中断或终止向用户提供服务：</p>
                 <ul className="list-disc pl-8 space-y-2 text-orange-700">
@@ -75,7 +88,7 @@ const Terms = () => {
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-lg font-semibold text-gray-800">6. 用户隐私</h2>
+              <h2 className="text-lg font-semibold text-gray-800">7. 用户隐私</h2>
               <p>
                 我们重视用户的隐私保护，具体隐私保护政策请参见本站的
                 <Link to="/privacy" className="text-blue-600 hover:text-blue-800 font-medium">《隐私政策》</Link>。
@@ -83,7 +96,7 @@ const Terms = () => {
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-lg font-semibold text-gray-800">7. 法律管辖</h2>
+              <h2 className="text-lg font-semibold text-gray-800">8. 法律管辖</h2>
               <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
                 <p className="text-gray-800">
                   本协议的订立、执行和解释及争议的解决均应适用
@@ -94,7 +107,7 @@ const Terms = () => {
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-lg font-semibold text-gray-800">8. 联系方式</h2>
+              <h2 className="text-lg font-semibold text-gray-800">9. 联系方式</h2>
               <p>如果您对本服务条款有任何疑问，请通过以下方式联系我们：</p>
               <ul className="list-disc pl-8 space-y-2">
                 <li>邮箱：junqianxi.hub@gmail.com</li>
