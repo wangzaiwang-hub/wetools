@@ -3,10 +3,15 @@ import { supabase } from './supabase';
 // 引入类型声明 - 确保项目中有这个文件或对应的类型定义
 /// <reference path="../types/qq-connect.d.ts" />
 
-// QQ应用信息 - 从安全的环境变量中获取更为安全，此处为示例
-const QQ_APP_ID = '102761649'; 
+// QQ应用信息 - 从环境变量中获取
+const QQ_APP_ID = import.meta.env.VITE_QQ_APP_ID || '102761649'; 
 // const QQ_APP_KEY = 'wlRvDKG2g5E8nGYe'; // APP KEY 通常用于后端
-const QQ_REDIRECT_URI = 'https://wetools.wctw.fun/auth/qq-callback';
+const QQ_REDIRECT_URI = import.meta.env.VITE_QQ_REDIRECT_URI || 'https://wetools.wctw.fun/auth/qq-callback';
+
+// 添加日志记录器
+const logQQConnect = (message: string, data?: any) => {
+  console.log(`[QQ Connect] ${message}`, data ? data : '');
+};
 
 // QQ用户信息接口
 export interface QQUserInfo {
@@ -40,28 +45,34 @@ interface TokenInfo {
 export const loadQQConnectScript = (): Promise<boolean> => {
   return new Promise((resolve) => {
     if (window.QC && 
-        typeof window.QC.Login === 'function' && 
-        window.QC.Login.getMe) { // 检查 getMe 是否存在
-      console.log('[QQ Connect] SDK已加载且关键方法(Login, Login.getMe)可用');
+        typeof window.QC.Login === 'function') { // 简化判断条件
+      logQQConnect('SDK已加载且关键方法可用');
       resolve(true);
       return;
     }
-    console.log('[QQ Connect] 尝试加载SDK脚本...');
+    
+    logQQConnect('尝试加载SDK脚本...');
     const existingScript = document.getElementById('qq-connect-sdk');
     if (existingScript) {
-      console.log('[QQ Connect] SDK脚本元素已存在，等待其加载...');
-      const timeout = setTimeout(() => {
-        if (window.QC && 
-            typeof window.QC.Login === 'function' && 
-            window.QC.Login.getMe) {
-          console.log('[QQ Connect] 等待后，SDK已加载且关键方法可用');
-          resolve(true);
-        } else {
-          console.error('[QQ Connect] SDK脚本元素存在但QC对象或关键方法仍未加载/不可用');
-          resolve(false); 
-        }
-      }, 2000); 
-      return;
+      logQQConnect('SDK脚本元素已存在，等待其加载...');
+      
+      // 如果脚本已存在但SDK未正确加载，可能需要重新加载
+      if (existingScript.getAttribute('data-reload-attempt')) {
+        logQQConnect('检测到之前加载失败的脚本，将其移除并重新加载');
+        existingScript.remove();
+      } else {
+        const timeout = setTimeout(() => {
+          if (window.QC && typeof window.QC.Login === 'function') {
+            logQQConnect('等待后，SDK已加载且关键方法可用');
+            resolve(true);
+          } else {
+            logQQConnect('SDK脚本元素存在但QC对象或关键方法不可用，将重新加载');
+            existingScript.remove();
+            loadQQConnectScript().then(resolve);
+          }
+        }, 2000); 
+        return;
+      }
     }
 
     const script = document.createElement('script');
@@ -70,23 +81,36 @@ export const loadQQConnectScript = (): Promise<boolean> => {
     script.defer = true; 
     script.id = 'qq-connect-sdk';
     script.setAttribute('data-appid', QQ_APP_ID);
-    script.setAttribute('data-redirecturi', QQ_REDIRECT_URI); 
+    script.setAttribute('data-redirecturi', QQ_REDIRECT_URI);
+    script.setAttribute('data-reload-attempt', 'true'); // 标记为重新加载的脚本
+    
+    // 增加请求随机参数，避免缓存问题
+    script.src = `${script.src}?_t=${Date.now()}`;
+    
     script.onload = () => {
-      console.log('[QQ Connect] SDK脚本加载成功 (onload)');
-      if (window.QC && 
-          typeof window.QC.Login === 'function' && 
-          window.QC.Login.getMe) { 
-        console.log('[QQ Connect] onload后，SDK已加载且关键方法可用');
-        resolve(true);
-      } else {
-        console.error('[QQ Connect] SDK onload触发但QC对象或关键方法不可用');
-        resolve(false);
-      }
+      logQQConnect('SDK脚本加载成功 (onload)');
+      
+      // 创建一个检查SDK初始化的函数
+      const checkSDKInitialized = () => {
+        if (window.QC && typeof window.QC.Login === 'function') {
+          logQQConnect('SDK初始化成功，关键方法可用');
+          resolve(true);
+        } else {
+          logQQConnect('SDK脚本已加载但QC对象或方法不可用，可能初始化延迟');
+          // 等待100ms后再次检查
+          setTimeout(checkSDKInitialized, 100);
+        }
+      };
+      
+      // 开始检查
+      checkSDKInitialized();
     };
+    
     script.onerror = (err) => {
-      console.error('[QQ Connect] SDK脚本加载失败:', err);
+      logQQConnect('SDK脚本加载失败:', err);
       resolve(false);
     };
+    
     document.head.appendChild(script); 
   });
 };
@@ -118,40 +142,47 @@ export function initQQLogin(containerId: string, size: 'A_XL' | 'A_L' | 'A_M' | 
  * 获取QQ用户信息 (依赖SDK已通过getMe成功获取token和openid)
  */
 export const getQQUserInfo = async (): Promise<QQUserInfo> => {
-  console.log('[QQ Connect] getQQUserInfo 调用开始');
+  logQQConnect('getQQUserInfo 调用开始');
   
   const QC = window.QC;
 
   if (!QC || typeof QC.api !== 'function') { 
-    console.error('[QQ Connect] getQQUserInfo失败: QC对象或QC.api非函数');
+    logQQConnect('getQQUserInfo失败: QC对象或QC.api非函数');
     throw new Error('QQ SDK未正确加载 (QC.api模块缺失或非函数)');
   }
   
-  // 到此处，QC 和 QC.api 应该都是有效的
-  return new Promise<QQUserInfo>((resolve, reject) => {
-    // 使用非空断言操作符 (!) 告诉 TypeScript QC.api 在这里肯定不是 undefined
+  // 设置超时处理
+  const timeout = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error('获取用户信息超时')), 10000);
+  });
+  
+  // 实际API调用
+  const apiCall = new Promise<QQUserInfo>((resolve, reject) => {
     QC.api!('get_user_info', {}, 'GET') 
       .success((res: QQUserInfo, RecordemosFormat: any) => {
-        console.log('[QQ Connect] get_user_info API 成功回调:', res);
+        logQQConnect('get_user_info API 成功回调:', res);
         if (res.ret === 0) {
           if (!res.openId && QC.Login && typeof QC.Login.userInfo === 'object' && QC.Login.userInfo && QC.Login.userInfo.openId) {
-             console.warn('[QQ Connect] get_user_info返回数据中缺少openId，尝试从SDK内部获取');
+             logQQConnect('get_user_info返回数据中缺少openId，尝试从SDK内部获取');
              res.openId = QC.Login.userInfo.openId;
-             console.log('[QQ Connect] 从QC.Login.userInfo补充了openId:', res.openId);
+             logQQConnect('从QC.Login.userInfo补充了openId:', res.openId);
           } else if (!res.openId) {
-            console.error('[QQ Connect] get_user_info成功但无法获取openId');
+            logQQConnect('get_user_info成功但无法获取openId');
           }
           resolve(res as QQUserInfo); 
         } else {
-          console.error('[QQ Connect] get_user_info API返回错误:', res);
+          logQQConnect('get_user_info API返回错误:', res);
           reject(new Error(res.msg || `获取用户信息失败 (ret: ${res.ret})`));
         }
       })
       .error((err: any) => {
-        console.error('[QQ Connect] get_user_info API错误回调:', err);
+        logQQConnect('get_user_info API错误回调:', err);
         reject(new Error(err.message || '调用QQ用户信息API失败'));
       });
   });
+  
+  // 使用Promise.race在超时和API调用之间竞争
+  return Promise.race([apiCall, timeout]);
 };
 
 /**
@@ -159,15 +190,15 @@ export const getQQUserInfo = async (): Promise<QQUserInfo> => {
  * @param userInfo QQ用户信息，必须包含openId
  */
 export const signInWithQQ = async (userInfo: QQUserInfo) => {
-  console.log('[QQ Connect] signInWithQQ 调用, userInfo:', userInfo);
+  logQQConnect('signInWithQQ 调用, userInfo:', userInfo);
   if (!userInfo.openId) {
-    console.error('[QQ Connect] signInWithQQ失败: OpenID缺失');
+    logQQConnect('signInWithQQ失败: OpenID缺失');
     throw new Error('无法注册或登录：OpenID缺失。');
   }
   const email = `${userInfo.openId}@qq.wetools.auth`; 
   const password = userInfo.openId; 
 
-  console.log(`[QQ Connect] 检查用户是否存在: qq_open_id = ${userInfo.openId}`);
+  logQQConnect(`检查用户是否存在: qq_open_id = ${userInfo.openId}`);
   const { data: existingUser, error:查用户错误 } = await supabase
     .from('user_profiles') 
     .select('user_id, qq_open_id, nickname, avatar_url') 
@@ -175,69 +206,120 @@ export const signInWithQQ = async (userInfo: QQUserInfo) => {
     .single();
 
   if (查用户错误 && 查用户错误.code !== 'PGRST116') { 
-    console.error('[QQ Connect] 查询现有用户失败:', 查用户错误);
+    logQQConnect('查询现有用户失败:', 查用户错误);
     throw new Error(`数据库查询失败: ${查用户错误.message}`);
   }
 
   if (existingUser) {
-    console.log('[QQ Connect] 用户已存在, 尝试使用密码登录 (Supabase)... Email:', email);
-    const { data: sessionData, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+    logQQConnect('用户已存在, 尝试使用密码登录 (Supabase)... Email:', email);
+    // 登录重试逻辑
+    let retries = 0;
+    const maxRetries = 3;
+    let lastError = null;
+    
+    while(retries < maxRetries) {
+      try {
+        const { data: sessionData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
 
-    if (signInError) {
-      console.error('[QQ Connect] Supabase signInWithPassword 错误:', signInError);
-      throw new Error(`登录失败: ${signInError.message}`);
-    }
-    console.log('[QQ Connect] 用户登录成功 (Supabase)');
-    return { isNewUser: false, session: sessionData.session, user: sessionData.user };
-  }
-
-  console.log('[QQ Connect] 用户不存在, 尝试注册新用户 (Supabase)... Email:', email);
-  const preferredAvatar = userInfo.figureurl_qq_2 || userInfo.figureurl_qq_1 || userInfo.figureurl_2 || userInfo.figureurl_1 || userInfo.figureurl;
-  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { 
-        nickname: userInfo.nickname,
-        avatar_url: preferredAvatar,
-        qq_open_id: userInfo.openId, 
-        full_name: userInfo.nickname, 
-        provider: 'qq'
+        if (signInError) {
+          lastError = signInError;
+          logQQConnect(`登录失败(尝试${retries+1}/${maxRetries}):`, signInError);
+          retries++;
+          // 重试前等待一些时间
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+        }
+        
+        logQQConnect('用户登录成功 (Supabase)');
+        return { isNewUser: false, session: sessionData.session, user: sessionData.user };
+      } catch (error) {
+        lastError = error;
+        logQQConnect(`登录异常(尝试${retries+1}/${maxRetries}):`, error);
+        retries++;
+        // 重试前等待一些时间
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
-  });
-
-  if (signUpError) {
-    console.error('[QQ Connect] Supabase signUp 错误:', signUpError);
-    throw new Error(`注册失败: ${signUpError.message}`);
+    
+    // 所有重试都失败
+    throw new Error(lastError ? `登录失败: ${(lastError as Error).message}` : '登录失败: 多次尝试后仍未成功');
   }
-  if (!signUpData.user) {
-    console.error('[QQ Connect] Supabase signUp成功但未返回用户信息');
-    throw new Error('注册成功但未能获取用户数据。');
+
+  logQQConnect('用户不存在, 尝试注册新用户 (Supabase)... Email:', email);
+  const preferredAvatar = userInfo.figureurl_qq_2 || userInfo.figureurl_qq_1 || userInfo.figureurl_2 || userInfo.figureurl_1 || userInfo.figureurl;
+  
+  // 注册重试逻辑
+  let retries = 0;
+  const maxRetries = 3;
+  let lastError = null;
+  
+  while(retries < maxRetries) {
+    try {
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { 
+            nickname: userInfo.nickname,
+            avatar_url: preferredAvatar,
+            qq_open_id: userInfo.openId, 
+            full_name: userInfo.nickname, 
+            provider: 'qq'
+          }
+        }
+      });
+
+      if (signUpError) {
+        lastError = signUpError;
+        logQQConnect(`注册失败(尝试${retries+1}/${maxRetries}):`, signUpError);
+        retries++;
+        // 重试前等待一些时间
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        continue;
+      }
+      
+      if (!signUpData.user) {
+        lastError = new Error('注册成功但未返回用户信息');
+        logQQConnect(`注册成功但未返回用户信息(尝试${retries+1}/${maxRetries})`);
+        retries++;
+        continue;
+      }
+      
+      logQQConnect('Supabase auth user创建成功, User ID:', signUpData.user.id);
+
+      logQQConnect('正在创建用户资料 (user_profiles)... User ID:', signUpData.user.id);
+      const { error: profileError } = await supabase
+        .from('user_profiles') 
+        .insert({
+          user_id: signUpData.user.id, 
+          nickname: userInfo.nickname,
+          avatar_url: preferredAvatar,
+          qq_open_id: userInfo.openId,
+          full_name: userInfo.nickname 
+        });
+
+      if (profileError) {
+        logQQConnect('创建用户资料 (user_profiles) 失败:', profileError);
+        logQQConnect('用户资料创建失败，但认证用户已创建。');
+      }
+      
+      logQQConnect('用户资料 (user_profiles) 创建/更新(逻辑上)成功。');
+      return { isNewUser: true, session: signUpData.session, user: signUpData.user };
+      
+    } catch (error) {
+      lastError = error;
+      logQQConnect(`注册异常(尝试${retries+1}/${maxRetries}):`, error);
+      retries++;
+      // 重试前等待一些时间
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
   }
-  console.log('[QQ Connect] Supabase auth user创建成功, User ID:', signUpData.user.id);
-
-  console.log('[QQ Connect] 正在创建用户资料 (user_profiles)... User ID:', signUpData.user.id);
-  const { error: profileError } = await supabase
-    .from('user_profiles') 
-    .insert({
-      user_id: signUpData.user.id, 
-      nickname: userInfo.nickname,
-      avatar_url: preferredAvatar,
-      qq_open_id: userInfo.openId,
-      full_name: userInfo.nickname 
-    });
-
-  if (profileError) {
-    console.error('[QQ Connect] 创建用户资料 (user_profiles) 失败:', profileError);
-    console.warn('[QQ Connect] 用户资料创建失败，但认证用户已创建。');
-  }
-  console.log('[QQ Connect] 用户资料 (user_profiles) 创建/更新(逻辑上)成功。');
-
-  return { isNewUser: true, session: signUpData.session, user: signUpData.user };
+  
+  // 所有重试都失败
+  throw new Error(lastError ? `注册失败: ${(lastError as Error).message}` : '注册失败: 多次尝试后仍未成功');
 };
 
 /**
@@ -251,11 +333,13 @@ export function getQQLoginState(): boolean {
 }
 
 /**
- * QQ退出登录 (从QQ侧退出)
+ * QQ登出
  */
 export function qqLogout(): void {
   if (window.QC && window.QC.Login && typeof window.QC.Login.signOut === 'function') {
     window.QC.Login.signOut();
-    console.log('[QQ Connect] QC.Login.signOut() 已调用');
+    logQQConnect('QQ已登出');
+  } else {
+    logQQConnect('QQ登出失败: SDK未初始化或登出方法不可用');
   }
 }
