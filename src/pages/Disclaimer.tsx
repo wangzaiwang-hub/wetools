@@ -98,9 +98,12 @@ const Disclaimer = () => {
             <section className="space-y-2">
               <h2 className="text-lg font-semibold text-gray-800">6. 数据安全</h2>
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-800">
+                <p className="text-green-800 mb-2">
                   本网站<span className="font-bold">不对用户的存储在本站服务器上的数据的删除或储存失败负责</span>。
                   用户应自行承担备份本站相关数据的责任。
+                </p>
+                <p className="text-green-800 mt-2">
+                  对于通过第三方服务（如QQ登录）授权的个人信息（如昵称、头像），我们会采取合理的安全措施进行保护。但是，我们<span className="font-bold">不对因黑客攻击、计算机病毒侵入或政府管制等不可抗力因素造成的资料泄露、丢失、被盗用或被篡改等情况承担任何责任</span>。
                 </p>
               </div>
             </section>
