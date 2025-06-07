@@ -13,45 +13,57 @@ serve(async (req) => {
   }
 
   try {
+    // 1. Check for required environment variables (Secrets)
+    const QQ_APP_ID = Deno.env.get("QQ_APP_ID");
+    const QQ_APP_KEY = Deno.env.get("QQ_APP_KEY");
+    const REDIRECT_URI = Deno.env.get("QQ_REDIRECT_URI");
+
+    if (!QQ_APP_ID || !QQ_APP_KEY || !REDIRECT_URI) {
+      throw new Error("Supabase Function缺少关键环境变量(Secrets)，请在Supabase后台 -> Edge Functions -> qq-auth -> Settings -> Secrets中配置: QQ_APP_ID, QQ_APP_KEY, QQ_REDIRECT_URI");
+    }
+
+    // 2. Get the authorization code from the request body
     const { code } = await req.json();
     if (!code) {
       throw new Error("请求中缺少授权码(code)");
     }
 
-    // 1. 使用code换取access_token
-    const tokenUrl = `https://graph.qq.com/oauth2.0/token?grant_type=authorization_code&client_id=${QQ_APP_ID}&client_secret=${QQ_APP_KEY}&code=${code}&redirect_uri=${REDIRECT_URI}`;
+    // 3. Exchange code for access token
+    const tokenUrl = `https://graph.qq.com/oauth2.0/token?grant_type=authorization_code&client_id=${QQ_APP_ID}&client_secret=${QQ_APP_KEY}&code=${code}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
     const tokenRes = await fetch(tokenUrl);
     const tokenDataText = await tokenRes.text();
+    
+    const tokenParams = new URLSearchParams(tokenDataText);
+    const accessToken = tokenParams.get("access_token");
 
-    const accessToken = new URLSearchParams(tokenDataText).get("access_token");
     if (!accessToken) {
-      throw new Error(`获取access_token失败: ${tokenDataText}`);
+      throw new Error(`从QQ服务器获取access_token失败。QQ的响应: ${tokenDataText}`);
     }
 
-    // 2. 使用access_token获取openid
+    // 4. Use access token to get openid
     const meUrl = `https://graph.qq.com/oauth2.0/me?access_token=${accessToken}`;
     const meRes = await fetch(meUrl);
     let meDataText = await meRes.text();
     
-    // QQ的返回格式是 callback( {"client_id":"YOUR_APP_ID","openid":"YOUR_OPENID"} ); 需要清理
     if (meDataText.startsWith("callback")) {
-      meDataText = meDataText.replace("callback( ", "").replace(" );", "");
+      meDataText = meDataText.substring(meDataText.indexOf("{"), meDataText.lastIndexOf("}") + 1);
     }
     const { openid } = JSON.parse(meDataText);
+
     if (!openid) {
-      throw new Error(`获取openid失败: ${meDataText}`);
+      throw new Error(`从QQ服务器获取openid失败。QQ的响应: ${meDataText}`);
     }
 
-    // 3. 使用access_token和openid获取用户信息
+    // 5. Use access token and openid to get user info
     const userUrl = `https://graph.qq.com/user/get_user_info?access_token=${accessToken}&oauth_consumer_key=${QQ_APP_ID}&openid=${openid}`;
     const userRes = await fetch(userUrl);
     const userInfo = await userRes.json();
     
     if (userInfo.ret !== 0) {
-      throw new Error(`获取用户信息失败: ${userInfo.msg}`);
+      throw new Error(`获取QQ用户信息失败: ${userInfo.msg}`);
     }
 
-    // 4. 返回精简的用户信息给前端
+    // 6. Return the essential user info to the client
     const result = {
       openId: openid,
       nickname: userInfo.nickname,
@@ -65,7 +77,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("QQ Auth Function Error:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: `QQ认证函数内部错误: ${error.message}` }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
