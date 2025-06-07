@@ -234,13 +234,18 @@ export const signInWithQQ = async (userInfo: QQUserInfo) => {
   });
 
   if (signUpError) {
-    console.error('[QQ Connect] Supabase signUp 错误:', signUpError);
+    console.error('[QQ Connect] Supabase signUp 错误:', JSON.stringify(signUpError, null, 2));
     // 如果错误是用户已存在（可能由于竞争条件），尝试再次登录
     if (signUpError.message.includes('User already registered')) {
-        console.log('[QQ Connect] 注册失败因用户已存在，转为登录...');
-        return signInWithQQ(userInfo);
+        console.warn('[QQ Connect] 注册失败，因为用户已存在（可能为竞争条件），将重试登录...');
+        const { data: sessionData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInError) {
+          throw new Error(`重试登录失败: ${signInError.message}`);
+        }
+        return { isNewUser: false, session: sessionData.session, user: sessionData.user };
     }
-    throw new Error(`注册失败: ${signUpError.message}`);
+    // 直接抛出从Supabase收到的原始错误对象，以便UI层显示详细信息
+    throw signUpError;
   }
   if (!signUpData.user) {
     throw new Error('注册成功但未能获取用户数据。');
