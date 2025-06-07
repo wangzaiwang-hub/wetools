@@ -76,17 +76,9 @@ const QQCallback: React.FC = () => {
 
         if (session && authUser) {
           toast.success(isNewUser ? 'QQ注册并登录成功！' : 'QQ登录成功！');
-          
-          let returnTo = localStorage.getItem('qq_login_from') || '/';
+          const returnTo = localStorage.getItem('qq_login_from') || '/';
           localStorage.removeItem('qq_login_from');
-          
-          // 如果登录/注册成功后返回的页面是登录页或注册页，则重定向到主页
-          if (['/login', '/register'].includes(returnTo)) {
-            returnTo = '/';
-          }
-          
           navigate(returnTo);
-
         } else {
           throw new Error('Supabase登录或注册后未能建立有效会话。');
         }
