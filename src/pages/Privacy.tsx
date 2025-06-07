@@ -28,6 +28,10 @@ const Privacy = () => {
                 <p className="font-medium text-blue-800 mb-2">我们可能收集以下类型的信息：</p>
                 <ul className="list-disc pl-8 space-y-2 text-blue-700">
                   <li>账户信息（如用户名、电子邮件地址）</li>
+                  <li>
+                    <strong>第三方授权信息：</strong>
+                    当您选择使用如QQ等第三方服务登录时，我们会根据您的授权，收集您在该第三方平台的公开信息，包括您的昵称（`nickname`）和头像（`avatar_url`）。
+                  </li>
                   <li>日志信息（如IP地址、访问时间、设备信息）</li>
                   <li>用户行为数据（如点击、浏览记录）</li>
                   <li>系统自动收集的技术数据</li>
@@ -41,6 +45,10 @@ const Privacy = () => {
                 <p className="font-medium text-indigo-800 mb-2">我们收集的信息将用于：</p>
                 <ul className="list-disc pl-8 space-y-2 text-indigo-700">
                   <li>提供、维护和改进我们的服务</li>
+                  <li>
+                    <strong>个性化体验：</strong>
+                    您通过QQ等第三方服务授权的昵称和头像，将用于在您的个人资料页面以及网站的其他位置展示，为您提供更个性化的使用体验。
+                  </li>
                   <li>处理用户反馈和请求</li>
                   <li>发送服务通知和更新信息</li>
                   <li>防止欺诈和提高安全性</li>
