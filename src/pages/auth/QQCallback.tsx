@@ -76,16 +76,16 @@ const QQCallback: React.FC = () => {
 
         if (session && authUser) {
           toast.success(isNewUser ? 'QQ注册并登录成功！' : 'QQ登录成功！');
-          let returnTo = localStorage.getItem('qq_login_from') || '/';
+          
+          // 强制跳转到主页，不管之前保存的是什么路径
           localStorage.removeItem('qq_login_from');
           
-          // 如果登录/注册成功后返回的页面是登录或注册页，则强制重定向到主页
-          if (['/login', '/register'].includes(returnTo)) {
-            returnTo = '/';
-          }
+          // 使用 replace: true 来替换历史记录而不是添加新记录
+          // 同时将用户引导到主页，而不是任何可能导致循环的页面
+          navigate('/', { replace: true });
           
-          // 使用 replace: true 来优化浏览器历史记录
-          navigate(returnTo, { replace: true });
+          // 添加 return 语句，确保代码不会继续执行
+          return;
         } else {
           throw new Error('Supabase登录或注册后未能建立有效会话。');
         }
