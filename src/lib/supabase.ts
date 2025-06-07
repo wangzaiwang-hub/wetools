@@ -368,37 +368,78 @@ export const ensureStorageStructure = async () => {
 };
 
 /**
- * 尝试恢复会话
- * 当用户会话过期或丢失时，尝试从本地存储恢复
+ * 会话恢复函数，用于在初始化失败时恢复会话
  * @returns 恢复结果对象，包含成功标志和会话信息
  */
 export const recoverSession = async () => {
+  console.log('尝试恢复会话...');
+  
   try {
-    console.log('尝试恢复会话...');
+    // 清除可能存在的无效token
+    const allKeys = Object.keys(localStorage);
+    const expiredOrInvalidKeys = allKeys.filter(key => 
+      key.includes('supabase.auth.token') && localStorage.getItem(key)?.includes('error')
+    );
     
-    // 从本地存储获取令牌
-    const persistedToken = localStorage.getItem('supabase.auth.token');
-    
-    if (!persistedToken) {
-      return { success: false, message: '没有找到持久化的令牌' };
+    if (expiredOrInvalidKeys.length > 0) {
+      console.log('检测到可能无效的会话token，正在清理:', expiredOrInvalidKeys);
+      expiredOrInvalidKeys.forEach(key => localStorage.removeItem(key));
     }
     
-    // 尝试刷新令牌
+    // 检查是否有QQ登录标记
+    const isQQLogin = localStorage.getItem('qq_login_attempt') === 'true';
+    if (isQQLogin) {
+      console.log('检测到这是QQ登录恢复尝试');
+      // QQ登录相关的恢复流程，例如重新获取会话
+      localStorage.removeItem('qq_login_attempt');
+    }
+
+    // 强制刷新会话
     const { data, error } = await supabase.auth.refreshSession();
     
     if (error) {
-      console.error('刷新会话失败:', error);
-      return { success: false, error, message: '刷新会话失败' };
+      console.error('会话刷新失败:', error);
+      
+      // 在重大错误情况下进行更彻底的清理
+      if (error.status === 400 || error.status === 401 || 
+          error.message?.includes('token') || error.message?.includes('JWT')) {
+        console.log('检测到无效令牌错误，执行全面清理');
+        
+        // 清理所有 supabase 相关存储
+        Object.keys(localStorage).forEach(key => {
+          if (key.includes('supabase') || key.includes('sb-') || key.includes('auth')) {
+            localStorage.removeItem(key);
+          }
+        });
+      }
+      
+      return { success: false, error, session: null };
     }
     
     if (data && data.session) {
-      console.log('成功恢复会话');
-      return { success: true, session: data.session };
+      console.log('会话恢复成功:', data.session.user?.email);
+      return { success: true, session: data.session, error: null };
     } else {
-      return { success: false, message: '会话恢复失败，没有有效的会话数据' };
+      console.log('会话恢复尝试完成，但无有效会话');
+      return { success: false, session: null, error: null };
     }
-  } catch (error) {
-    console.error('恢复会话时出错:', error);
-    return { success: false, error, message: '恢复会话过程中出错' };
+  } catch (err) {
+    console.error('会话恢复过程中出错:', err);
+    return { success: false, error: err as Error, session: null };
   }
+};
+
+/**
+ * 标记尝试使用QQ登录
+ * 用于会话恢复逻辑中识别QQ登录
+ */
+export const markQQLoginAttempt = () => {
+  localStorage.setItem('qq_login_attempt', 'true');
+};
+
+/**
+ * 清除QQ登录尝试标记
+ */
+export const clearQQLoginAttempt = () => {
+  localStorage.removeItem('qq_login_attempt');
 };
