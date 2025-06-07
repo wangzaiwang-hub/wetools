@@ -188,20 +188,19 @@ export const signInWithQQ = async (userInfo: QQUserInfo) => {
   const email = `${userInfo.openId}@qq.wetools.auth`; 
   const password = userInfo.openId; // 使用openId作为密码是一个简化实现
 
-  // 检查用户是否已存在
-  const { data: existingUser, error: findUserError } = await supabase
-    .from('user_profiles') 
-    .select('user_id, qq_open_id') 
-    .eq('qq_open_id', userInfo.openId)
-    .single();
+  // 检查用户是否已存在 - 改为调用RPC函数
+  const { data: userExists, error: rpcError } = await supabase.rpc(
+    'user_exists_by_qq_openid',
+    { p_qq_open_id: userInfo.openId }
+  );
 
-  if (findUserError && findUserError.code !== 'PGRST116') { // PGRST116: 'exact one row not found'
-    console.error('[QQ Connect] 查询现有用户失败:', findUserError);
-    throw new Error(`数据库查询失败: ${findUserError.message}`);
+  if (rpcError) {
+    console.error('[QQ Connect] 调用RPC函数检查用户失败:', rpcError);
+    throw new Error(`数据库RPC调用失败: ${rpcError.message}`);
   }
 
   // 如果用户已存在，直接登录
-  if (existingUser) {
+  if (userExists) {
     console.log('[QQ Connect] 用户已存在，尝试登录...');
     const { data: sessionData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
