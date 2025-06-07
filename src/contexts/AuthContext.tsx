@@ -333,14 +333,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       // 如果尝试了所有重试仍未成功，提供更清晰的错误信息
-      if (lastError && (lastError.status === 403 || (lastError.message && (lastError.message.includes('403') || lastError.message.includes('token'))))) {
+      const finalError = lastError as any;
+      if (finalError && (finalError.status === 403 || (finalError.message && (finalError.message.includes('403') || finalError.message.includes('token'))))) {
         console.error('多次尝试后仍出现令牌错误，建议用户清除浏览器缓存或使用无痕模式');
         return { 
           error: {
-            ...lastError,
+            ...finalError,
             message: '登录身份验证遇到问题。请清除浏览器缓存后重试，或使用无痕模式登录。',
-            status: 403,
-            name: 'TokenError'
           } as Error
         };
       }
@@ -466,14 +465,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         `state=${state}&` +
         `scope=get_user_info`;
       
-      // 显示加载提示
-      toast.loading('正在跳转到QQ登录页面...', { duration: 2000 });
-      
-      // 延迟500ms再跳转，让用户看到提示
-      setTimeout(() => {
-        // 跳转到QQ登录页面
-        window.location.href = qqLoginUrl;
-      }, 500);
+      // 直接跳转到QQ登录页面
+      window.location.href = qqLoginUrl;
+
     } catch (error) {
       console.error('QQ登录跳转失败:', error);
       toast.error('QQ登录失败，请重试或选择其他登录方式');
