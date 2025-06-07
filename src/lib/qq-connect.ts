@@ -4,6 +4,14 @@ import toast from 'react-hot-toast';
 // 引入类型声明 - 确保项目中有这个文件或对应的类型定义
 /// <reference path="../types/qq-connect.d.ts" />
 
+// 添加一个净化用户名的函数，移除特殊字符
+const sanitizeNickname = (name: string | null | undefined): string => {
+  if (!name) return 'QQ用户';
+  // 只保留字母、数字、中文、下划线和短横线，移除其他所有特殊字符包括emoji
+  const sanitized = name.replace(/[^\p{L}\p{N}\p{sc=Han}_-]/gu, '').trim();
+  return sanitized || 'QQ用户';
+};
+
 // QQ应用信息 - 从环境变量中获取
 const QQ_APP_ID = import.meta.env.VITE_QQ_APP_ID || '102761649'; 
 // const QQ_APP_KEY = 'wlRvDKG2g5E8nGYe'; // APP KEY 通常用于后端
