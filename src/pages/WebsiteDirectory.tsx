@@ -733,11 +733,6 @@ const WebsiteDirectory = () => {
           </div>
         </div>
 
-        {/* 底部提示文字 */}
-        <div className="text-center mt-8 text-gray-500 text-sm">
-          感谢您的支持！本网站接受日均打赏，打赏金额由您自愿决定。打赞全部用于自助支付宝和微信支付，打赞不会给您自动发货。
-        </div>
-
         {/* 网络警告 */}
         {showNetworkWarning && (
           <div className="fixed bottom-4 right-4 bg-yellow-50 text-yellow-800 px-4 py-2 rounded-lg shadow-lg">
