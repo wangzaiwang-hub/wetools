@@ -396,6 +396,20 @@ const Admin = () => {
     
     try {
       for (const file of files) {
+        // 检查文件类型
+        if (!file.type.startsWith('image/')) {
+          console.error(`文件 ${file.name} 不是图片`);
+          failedUploads.push(`${file.name} (非图片文件)`);
+          continue;
+        }
+        
+        // 检查文件大小
+        if (file.size > 10 * 1024 * 1024) { // 10MB上限
+          console.error(`文件 ${file.name} 太大 (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+          failedUploads.push(`${file.name} (超过10MB)`);
+          continue;
+        }
+        
         console.log(`开始上传截图: ${file.name}`);
         const { url, error } = await uploadImage(file, 'screenshots');
         
@@ -1603,8 +1617,22 @@ const Admin = () => {
     const failedUploads: string[] = [];
     
     try {
+      // 添加文件检查
       for (const file of files) {
-        console.log(`开始上传网站截图: ${file.name}`);
+        // 检查文件类型
+        if (!file.type.startsWith('image/')) {
+          console.error(`文件 ${file.name} 不是图片`);
+          failedUploads.push(`${file.name} (非图片文件)`);
+          continue;
+        }
+        
+        // 检查文件大小
+        if (file.size > 10 * 1024 * 1024) { // 10MB上限
+          console.error(`文件 ${file.name} 太大 (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+          failedUploads.push(`${file.name} (超过10MB)`);
+          continue;
+        }
+      
         const { url, error } = await uploadImage(file, 'website-screenshots');
         
         if (error) {
@@ -1614,34 +1642,31 @@ const Admin = () => {
         }
         
         if (url) {
-          console.log(`网站截图上传成功: ${url}`);
+          console.log('网站截图上传成功:', url);
           uploadedUrls.push(url);
         }
       }
       
       if (uploadedUrls.length > 0) {
-        console.log(`成功上传 ${uploadedUrls.length} 张网站截图，即将更新状态`);
-        
-        // 使用函数式更新确保状态更新基于最新状态
         if (editingWebsite) {
           setEditingWebsite((prev) => {
             if (!prev) return prev;
-            const updatedScreenshots = [...(prev.screenshots || []), ...uploadedUrls];
-            console.log('更新后的网站截图数组:', updatedScreenshots);
             return {
               ...prev,
-              screenshots: updatedScreenshots
+              screenshots: [...(prev.screenshots || []), ...uploadedUrls]
             };
           });
+          
+          // 同时更新 newWebsite 状态以确保提交时使用正确的数据
+          setNewWebsite((prev) => ({
+            ...prev,
+            screenshots: [...(prev.screenshots || []), ...uploadedUrls]
+          }));
         } else {
-          setNewWebsite((prev) => {
-            const updatedScreenshots = [...(prev.screenshots || []), ...uploadedUrls];
-            console.log('更新后的网站截图数组:', updatedScreenshots);
-            return {
-              ...prev,
-              screenshots: updatedScreenshots
-            };
-          });
+          setNewWebsite((prev) => ({
+            ...prev,
+            screenshots: [...(prev.screenshots || []), ...uploadedUrls]
+          }));
         }
         
         toast.success(`成功上传 ${uploadedUrls.length} 张网站截图`);
@@ -1654,7 +1679,7 @@ const Admin = () => {
       }
     } catch (error) {
       console.error('上传网站截图过程中发生错误:', error);
-      toast.error('上传网站截图失败: ' + (error instanceof Error ? error.message : String(error)));
+      toast.error('上传网站截图失败');
     } finally {
       setIsUploading(false);
       // 清空文件输入
@@ -1677,42 +1702,51 @@ const Admin = () => {
 
   // 网站图标上传处理函数
   const handleWebsiteIconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('图标文件大小不能超过5MB');
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    
+    // 检查文件类型
+    if (!file.type.startsWith('image/')) {
+      toast.error('请上传图片文件');
+      e.target.value = '';
+      return;
+    }
+    
+    // 检查文件大小
+    if (file.size > 5 * 1024 * 1024) { // 5MB上限
+      toast.error(`文件太大 (${(file.size / 1024 / 1024).toFixed(2)}MB)，请上传小于5MB的图片`);
+      e.target.value = '';
+      return;
+    }
+    
+    try {
+      setIsUploading(true);
+      const { url, error } = await uploadImage(file, 'website-icons');
+      
+      if (error) {
+        console.error('Error uploading website icon:', error);
+        toast.error('网站图标上传失败');
         return;
       }
-
-      try {
-        console.log('开始上传网站图标:', file.name);
-        const { url, error } = await uploadImage(file, 'website-icons');
-
-        if (error) {
-          console.error('网站图标上传失败:', error);
-          toast.error(`图标上传失败: ${error.message}`);
-          return;
+      
+      if (url) {
+        if (editingWebsite) {
+          setEditingWebsite(prev => {
+            if (!prev) return prev;
+            return { ...prev, icon_url: url };
+          });
         }
-
-        if (url) {
-          console.log('网站图标上传成功:', url);
-          if (editingWebsite) {
-            setEditingWebsite({
-              ...editingWebsite,
-              icon_url: url
-            });
-          } else {
-            setNewWebsite({
-              ...newWebsite,
-              icon_url: url
-            });
-          }
-          toast.success('图标上传成功');
-        }
-      } catch (error) {
-        console.error('网站图标上传过程中发生错误:', error);
-        toast.error('图标上传失败: ' + (error instanceof Error ? error.message : String(error)));
+        
+        // 同时更新 newWebsite 状态
+        setNewWebsite(prev => ({ ...prev, icon_url: url }));
+        toast.success('网站图标上传成功');
       }
+    } catch (error) {
+      console.error('Error uploading website icon:', error);
+      toast.error('网站图标上传失败');
+    } finally {
+      setIsUploading(false);
+      e.target.value = ''; // 清空文件输入
     }
   };
 
