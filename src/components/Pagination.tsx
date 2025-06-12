@@ -116,16 +116,27 @@ const Pagination: React.FC<PaginationProps> = ({
       addPageButton(2, false);
     }
     
-    // 3. 添加当前页
+    // 3. 添加当前页的前一页（除非当前页是第一页）
+    if (currentPage > 1) {
+      // 如果当前页是2，第一页已经添加过了，不需要重复添加
+      if (currentPage > 2) {
+        // 如果当前页是3，前面已经单独处理添加了第2页，也不需要重复添加
+        if (currentPage !== 3 || !addedPages.has(2)) {
+          addPageButton(currentPage - 1, false);
+        }
+      }
+    }
+    
+    // 4. 添加当前页
     addPageButton(currentPage, true);
     
-    // 4. 决定是否添加当前页的下一页
+    // 5. 决定是否添加当前页的下一页
     // 注意：如果当前页是倒数第三页，我们稍后会添加倒数第二页，所以这里不重复添加
     if (currentPage < totalPages - 2 && currentPage < totalPages) {
       addPageButton(currentPage + 1, false);
     }
     
-    // 5. 处理右侧省略号
+    // 6. 处理右侧省略号
     if (currentPage < totalPages - 2) {
       if (showRightGoInput) {
         // 显示右侧快速跳转输入框
