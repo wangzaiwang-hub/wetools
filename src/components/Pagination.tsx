@@ -24,11 +24,7 @@ const Pagination: React.FC<PaginationProps> = ({
 }) => {
   if (totalPages <= 1) return null;
 
-  // 用于追踪哪些省略号被展开
-  const [expandedLeft, setExpandedLeft] = useState(false);
-  const [expandedRight, setExpandedRight] = useState(false);
-  
-  // 控制快速跳转输入框的显示
+  // 移除展开状态，只保留弹窗状态
   const [showLeftGoInput, setShowLeftGoInput] = useState(false);
   const [showRightGoInput, setShowRightGoInput] = useState(false);
   const [goToPage, setGoToPage] = useState<string>('');
@@ -44,8 +40,6 @@ const Pagination: React.FC<PaginationProps> = ({
 
   // 重置所有状态
   const resetAllState = () => {
-    setExpandedLeft(false);
-    setExpandedRight(false);
     setShowLeftGoInput(false);
     setShowRightGoInput(false);
     setGoToPage('');
@@ -111,32 +105,14 @@ const Pagination: React.FC<PaginationProps> = ({
               </button>
             </div>
           );
-        } else if (expandedLeft) {
-          // 显示左侧所有被省略的页码
-          for (let i = 2; i < startPage; i++) {
-            pages.push(
-              <PageButton 
-                key={i} 
-                page={i} 
-                isActive={currentPage === i}
-                onClick={() => onPageChange(i)} 
-                disabled={isLoading}
-              />
-            );
-          }
         } else {
-          // 显示可点击的省略号，长按显示输入框，短按展开页码
+          // 显示可点击的省略号，点击直接显示输入框
           pages.push(
             <button 
               key="left-ellipsis" 
               className="flex items-center justify-center w-10 h-10 rounded-full text-gray-500 hover:bg-gray-100"
-              onClick={() => setExpandedLeft(true)}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                setShowLeftGoInput(true);
-              }}
-              onDoubleClick={() => setShowLeftGoInput(true)}
-              title="点击展开页码，双击或右键跳转到指定页"
+              onClick={() => setShowLeftGoInput(true)}
+              title="点击跳转到指定页"
             >
               ...
             </button>
@@ -184,32 +160,14 @@ const Pagination: React.FC<PaginationProps> = ({
               </button>
             </div>
           );
-        } else if (expandedRight) {
-          // 显示右侧所有被省略的页码
-          for (let i = endPage + 1; i < totalPages; i++) {
-            pages.push(
-              <PageButton 
-                key={i} 
-                page={i} 
-                isActive={currentPage === i}
-                onClick={() => onPageChange(i)} 
-                disabled={isLoading}
-              />
-            );
-          }
         } else {
-          // 显示可点击的省略号，长按显示输入框，短按展开页码
+          // 显示可点击的省略号，点击直接显示输入框
           pages.push(
             <button 
               key="right-ellipsis" 
               className="flex items-center justify-center w-10 h-10 rounded-full text-gray-500 hover:bg-gray-100"
-              onClick={() => setExpandedRight(true)}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                setShowRightGoInput(true);
-              }}
-              onDoubleClick={() => setShowRightGoInput(true)}
-              title="点击展开页码，双击或右键跳转到指定页"
+              onClick={() => setShowRightGoInput(true)}
+              title="点击跳转到指定页"
             >
               ...
             </button>
@@ -235,7 +193,7 @@ const Pagination: React.FC<PaginationProps> = ({
   const PageButton: React.FC<PageButtonProps> = ({ page, isActive, onClick, disabled }) => (
     <button
       onClick={() => {
-        resetAllState(); // 点击页码时重置展开状态
+        resetAllState(); // 点击页码时重置所有状态
         onClick();
       }}
       disabled={disabled}
