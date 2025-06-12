@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { convertToWebP, isImage, isWebP } from '../utils/imageConverter';
 
 // Define backup data for when Supabase is unreachable
 export const SAMPLE_ADS = [
@@ -79,7 +80,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       'x-application-name': 'we-tools'
     },
     // Add retry logic for network instability
-    fetch: (url: string, options?: RequestInit): Promise<Response> => {
+    fetch: (url: RequestInfo | URL, options?: RequestInit): Promise<Response> => {
       // Maximum number of retries
       const MAX_RETRIES = 3;
       
@@ -106,7 +107,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
             console.warn('Possible CORS restriction, attempting fallback');
             
             // Create a mock Response for ads endpoint
-            if (url.includes('/advertisements')) {
+            if (url.toString().includes('/advertisements')) {
               console.log('Returning mock ad data');
               return new Response(JSON.stringify(SAMPLE_ADS), {
                 status: 200,
@@ -117,7 +118,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
             }
             
             // 处理RPC调用失败的情况
-            if (url.includes('/rpc/get_software_star_counts')) {
+            if (url.toString().includes('/rpc/get_software_star_counts')) {
               console.log('Returning mock star count data');
               return new Response(JSON.stringify(FALLBACK_STAR_COUNTS), {
                 status: 200,
@@ -128,7 +129,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
             }
             
             // 处理网站统计数据失败的情况
-            if (url.includes('/website_stats')) {
+            if (url.toString().includes('/website_stats')) {
               console.log('Returning mock website stats');
               return new Response(JSON.stringify(FALLBACK_STATS), {
                 status: 200,
@@ -236,13 +237,41 @@ export const toggleSoftwareStar = async (softwareId: string, userId: string) => 
 
 export const uploadAvatar = async (file: File, userId: string): Promise<string> => {
   try {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${userId}-${Math.random()}.${fileExt}`;
+    // 检查文件是否为图片
+    if (!isImage(file)) {
+      throw new Error('只能上传图片文件作为头像');
+    }
+
+    // 如果不是WebP格式，转换为WebP
+    let fileToUpload = file;
+    
+    if (!isWebP(file)) {
+      console.log(`将头像图片转换为WebP格式: ${file.name}`);
+      try {
+        const result = await convertToWebP(file, 90); // 头像使用更高的质量
+        fileToUpload = result.file;
+        console.log('头像转换成功:', {
+          originalSize: result.originalSize,
+          newSize: result.newSize,
+          compressionRatio: (result.newSize / result.originalSize * 100).toFixed(2) + '%'
+        });
+      } catch (conversionError) {
+        console.error('头像转换失败，将使用原始文件:', conversionError);
+        // 如果转换失败，继续使用原始文件
+      }
+    }
+
+    // 生成唯一文件名（确保WebP扩展名）
+    const fileName = `${userId}-${Math.random().toString(36).substring(2, 10)}.webp`;
     const filePath = `avatars/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from('avatars')
-      .upload(filePath, file);
+      .upload(filePath, fileToUpload, {
+        contentType: 'image/webp',
+        cacheControl: '3600',
+        upsert: true
+      });
 
     if (uploadError) {
       throw uploadError;
