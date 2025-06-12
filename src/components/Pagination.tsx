@@ -49,16 +49,18 @@ const Pagination: React.FC<PaginationProps> = ({
   const renderPageNumbers = () => {
     const pages = [];
     
-    // 始终显示第一页
-    pages.push(
-      <PageButton 
-        key={1} 
-        page={1} 
-        isActive={currentPage === 1}
-        onClick={() => onPageChange(1)} 
-        disabled={isLoading}
-      />
-    );
+    // 始终显示第一页（当当前页不是1时）
+    if (currentPage !== 1) {
+      pages.push(
+        <PageButton 
+          key={1} 
+          page={1} 
+          isActive={false}
+          onClick={() => onPageChange(1)} 
+          disabled={isLoading}
+        />
+      );
+    }
     
     // 如果当前页不是第一页或第二页，显示左侧省略号
     if (currentPage > 3) {
@@ -114,7 +116,7 @@ const Pagination: React.FC<PaginationProps> = ({
     }
     
     // 显示当前页的前一页（如果不是第一页）
-    if (currentPage > 1) {
+    if (currentPage > 1 && currentPage !== 2) {  // 避免重复显示第1页
       pages.push(
         <PageButton 
           key={currentPage - 1} 
@@ -127,20 +129,18 @@ const Pagination: React.FC<PaginationProps> = ({
     }
     
     // 显示当前页
-    if (currentPage > 1 && currentPage < totalPages) {
-      pages.push(
-        <PageButton 
-          key={currentPage} 
-          page={currentPage} 
-          isActive={true}
-          onClick={() => onPageChange(currentPage)} 
-          disabled={isLoading}
-        />
-      );
-    }
+    pages.push(
+      <PageButton 
+        key={currentPage} 
+        page={currentPage} 
+        isActive={true}
+        onClick={() => onPageChange(currentPage)} 
+        disabled={isLoading}
+      />
+    );
     
     // 显示当前页的后一页（如果不是最后一页）
-    if (currentPage < totalPages) {
+    if (currentPage < totalPages && currentPage !== totalPages - 1) {  // 避免重复显示最后一页
       pages.push(
         <PageButton 
           key={currentPage + 1} 
@@ -205,13 +205,13 @@ const Pagination: React.FC<PaginationProps> = ({
       );
     }
     
-    // 始终显示最后一页
-    if (totalPages > 1) {
+    // 始终显示最后一页（当当前页不是最后一页时）
+    if (currentPage !== totalPages) {
       pages.push(
         <PageButton 
           key={totalPages} 
           page={totalPages} 
-          isActive={currentPage === totalPages}
+          isActive={false}
           onClick={() => onPageChange(totalPages)} 
           disabled={isLoading}
         />
