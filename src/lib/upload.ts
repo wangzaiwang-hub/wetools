@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { convertToWebP, isImage, isWebP } from '../utils/imageConverter';
 
 /**
  * 上传图片到Supabase存储
@@ -18,24 +19,54 @@ export const uploadImage = async (
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      // 生成唯一文件名
+      // 检查文件是否为图片
+      if (!isImage(file)) {
+        throw new Error('只能上传图片文件');
+      }
+
+      // 如果不是WebP格式，转换为WebP
+      let fileToUpload = file;
+      let conversionStats = null;
+      
+      if (!isWebP(file)) {
+        console.log(`将图片转换为WebP格式: ${file.name}`);
+        try {
+          const result = await convertToWebP(file);
+          fileToUpload = result.file;
+          conversionStats = {
+            originalSize: result.originalSize,
+            newSize: result.newSize,
+            compressionRatio: (result.newSize / result.originalSize * 100).toFixed(2) + '%'
+          };
+          console.log('图片转换成功:', conversionStats);
+        } catch (conversionError) {
+          console.error('图片转换失败，将使用原始文件:', conversionError);
+          // 如果转换失败，继续使用原始文件
+        }
+      }
+      
+      // 生成唯一文件名（确保WebP扩展名）
       const timestamp = Date.now();
       const randomId = Math.random().toString(36).substring(2, 10);
-      const fileName = `${timestamp}-${randomId}-${file.name.replace(/\s+/g, '_')}`;
+      const originalName = fileToUpload.name;
+      const fileNameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;
+      const fileName = `${timestamp}-${randomId}-${fileNameWithoutExt.replace(/\s+/g, '_')}.webp`;
       const filePath = `${folder}/${fileName}`;
       
       console.log(`尝试上传图片 (第${attempt}次)...`, {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-        path: filePath
+        originalFileName: file.name,
+        uploadFileName: fileName,
+        fileSize: fileToUpload.size,
+        fileType: fileToUpload.type,
+        path: filePath,
+        ...(conversionStats ? { conversionStats } : {})
       });
       
       // 上传文件到Supabase存储
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('software-images')
-        .upload(filePath, file, {
-          contentType: file.type,
+        .upload(filePath, fileToUpload, {
+          contentType: 'image/webp',
           cacheControl: '3600',
           upsert: true
         });
