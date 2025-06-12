@@ -11,12 +11,11 @@ export const uploadImage = async (
   folder: string = 'ads'
 ): Promise<{ url?: string; error?: Error }> => {
   try {
-    // 生成唯一文件名
+    // 生成唯一文件名，避免中文字符
     const timestamp = Date.now();
     const randomId = Math.random().toString(36).substring(2, 10);
-    const originalName = file.name;
-    const fileNameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;
-    const fileName = `${timestamp}-${randomId}-${fileNameWithoutExt.replace(/\s+/g, '_')}.webp`;
+    const extension = file.name.split('.').pop() || 'jpg';
+    const fileName = `${timestamp}-${randomId}.${extension}`;
     const filePath = `${folder}/${fileName}`;
     
     console.log(`尝试上传图片...`, {
