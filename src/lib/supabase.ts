@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { convertToWebP, isImage, isWebP } from '../utils/imageConverter';
+import { uploadImage } from './upload';
 
 // Define backup data for when Supabase is unreachable
 export const SAMPLE_ADS = [
@@ -237,53 +237,20 @@ export const toggleSoftwareStar = async (softwareId: string, userId: string) => 
 
 export const uploadAvatar = async (file: File, userId: string): Promise<string> => {
   try {
-    // 检查文件是否为图片
-    if (!isImage(file)) {
-      throw new Error('只能上传图片文件作为头像');
+    const fileToUpload = file;
+    // 使用新的 uploadImage 函数
+    const { url, error } = await uploadImage(fileToUpload);
+
+    if (error) {
+      throw error;
+    }
+    if (!url) {
+      throw new Error('图片上传成功但未返回URL');
     }
 
-    // 如果不是WebP格式，转换为WebP
-    let fileToUpload = file;
-    
-    if (!isWebP(file)) {
-      console.log(`将头像图片转换为WebP格式: ${file.name}`);
-      try {
-        const result = await convertToWebP(file, 90); // 头像使用更高的质量
-        fileToUpload = result.file;
-        console.log('头像转换成功:', {
-          originalSize: result.originalSize,
-          newSize: result.newSize,
-          compressionRatio: (result.newSize / result.originalSize * 100).toFixed(2) + '%'
-        });
-      } catch (conversionError) {
-        console.error('头像转换失败，将使用原始文件:', conversionError);
-        // 如果转换失败，继续使用原始文件
-      }
-    }
-
-    // 生成唯一文件名（确保WebP扩展名）
-    const fileName = `${userId}-${Math.random().toString(36).substring(2, 10)}.webp`;
-    const filePath = `avatars/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(filePath, fileToUpload, {
-        contentType: 'image/webp',
-        cacheControl: '3600',
-        upsert: true
-      });
-
-    if (uploadError) {
-      throw uploadError;
-    }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(filePath);
-
-    return publicUrl;
+    return url;
   } catch (error) {
-    console.error('Error uploading avatar:', error);
+    console.error('头像上传失败:', error);
     throw error;
   }
 };
