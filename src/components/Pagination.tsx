@@ -48,23 +48,31 @@ const Pagination: React.FC<PaginationProps> = ({
   // 渲染详细的页码
   const renderPageNumbers = () => {
     const pages = [];
+    const addedPages = new Set(); // 跟踪已添加的页码，避免重复
     
-    // 始终显示第一页（当当前页不是1时）
-    if (currentPage !== 1) {
+    // 辅助函数：添加页码按钮并追踪
+    const addPageButton = (pageNum: number, isActive: boolean) => {
+      if (addedPages.has(pageNum)) return; // 如果已添加过该页码，则跳过
+      
+      addedPages.add(pageNum);
       pages.push(
         <PageButton 
-          key={1} 
-          page={1} 
-          isActive={false}
-          onClick={() => onPageChange(1)} 
+          key={pageNum} 
+          page={pageNum} 
+          isActive={isActive}
+          onClick={() => onPageChange(pageNum)} 
           disabled={isLoading}
         />
       );
+    };
+    
+    // 1. 添加第一页（如果当前页不是第一页）
+    if (currentPage !== 1) {
+      addPageButton(1, false);
     }
     
-    // 处理省略号逻辑
+    // 2. 处理左侧省略号
     if (currentPage > 3) {
-      // 当前页距离第一页较远，显示省略号或输入框
       if (showLeftGoInput) {
         // 显示左侧快速跳转输入框
         pages.push(
@@ -94,7 +102,7 @@ const Pagination: React.FC<PaginationProps> = ({
             key="left-ellipsis" 
             className="flex items-center justify-center w-10 h-10 rounded-full text-gray-500 hover:bg-gray-100"
             onClick={() => {
-              setShowRightGoInput(false); // 关闭右侧输入框
+              setShowRightGoInput(false);
               setShowLeftGoInput(true);
             }}
             title="点击跳转到指定页"
@@ -105,46 +113,20 @@ const Pagination: React.FC<PaginationProps> = ({
       }
     } else if (currentPage === 3) {
       // 当前页是3，显示2
-      pages.push(
-        <PageButton 
-          key={2} 
-          page={2} 
-          isActive={false}
-          onClick={() => onPageChange(2)} 
-          disabled={isLoading}
-        />
-      );
-    } else if (currentPage === 2) {
-      // 当前页是2，不需要额外处理，因为已经显示了1和2
+      addPageButton(2, false);
     }
     
-    // 显示当前页（永远显示）
-    pages.push(
-      <PageButton 
-        key={currentPage} 
-        page={currentPage} 
-        isActive={true}
-        onClick={() => onPageChange(currentPage)} 
-        disabled={isLoading}
-      />
-    );
+    // 3. 添加当前页
+    addPageButton(currentPage, true);
     
-    // 显示当前页的后一页（如果有且不是最后一页）
-    if (currentPage < totalPages && currentPage !== totalPages - 1) {
-      pages.push(
-        <PageButton 
-          key={currentPage + 1} 
-          page={currentPage + 1} 
-          isActive={false}
-          onClick={() => onPageChange(currentPage + 1)} 
-          disabled={isLoading}
-        />
-      );
+    // 4. 决定是否添加当前页的下一页
+    // 注意：如果当前页是倒数第三页，我们稍后会添加倒数第二页，所以这里不重复添加
+    if (currentPage < totalPages - 2 && currentPage < totalPages) {
+      addPageButton(currentPage + 1, false);
     }
     
-    // 处理右侧省略号逻辑
+    // 5. 处理右侧省略号
     if (currentPage < totalPages - 2) {
-      // 当前页距离最后一页较远，显示省略号或输入框
       if (showRightGoInput) {
         // 显示右侧快速跳转输入框
         pages.push(
@@ -174,7 +156,7 @@ const Pagination: React.FC<PaginationProps> = ({
             key="right-ellipsis" 
             className="flex items-center justify-center w-10 h-10 rounded-full text-gray-500 hover:bg-gray-100"
             onClick={() => {
-              setShowLeftGoInput(false); // 关闭左侧输入框
+              setShowLeftGoInput(false);
               setShowRightGoInput(true);
             }}
             title="点击跳转到指定页"
@@ -183,30 +165,16 @@ const Pagination: React.FC<PaginationProps> = ({
           </button>
         );
       }
-    } else if (currentPage === totalPages - 2) {
-      // 当前页是倒数第3页，显示倒数第2页
-      pages.push(
-        <PageButton 
-          key={totalPages - 1} 
-          page={totalPages - 1} 
-          isActive={false}
-          onClick={() => onPageChange(totalPages - 1)} 
-          disabled={isLoading}
-        />
-      );
     }
     
-    // 显示最后一页（当当前页不是最后一页时）
+    // 6. 添加倒数第二页（如果当前页是倒数第三页）
+    if (currentPage === totalPages - 2) {
+      addPageButton(totalPages - 1, false);
+    }
+    
+    // 7. 添加最后一页（如果当前页不是最后一页）
     if (currentPage !== totalPages && totalPages > 1) {
-      pages.push(
-        <PageButton 
-          key={totalPages} 
-          page={totalPages} 
-          isActive={false}
-          onClick={() => onPageChange(totalPages)} 
-          disabled={isLoading}
-        />
-      );
+      addPageButton(totalPages, false);
     }
     
     return pages;
