@@ -47,6 +47,20 @@ const Pagination: React.FC<PaginationProps> = ({
 
   // 渲染详细的页码
   const renderPageNumbers = () => {
+    // 当总页数小于7时，直接显示所有页码
+    if (totalPages < 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+        <PageButton
+          key={page}
+          page={page}
+          isActive={page === currentPage}
+          onClick={() => onPageChange(page)}
+          disabled={isLoading}
+        />
+      ));
+    }
+    
+    // 总页数大于等于7时，使用省略号逻辑
     const pages = [];
     const addedPages = new Set(); // 跟踪已添加的页码，避免重复
     
