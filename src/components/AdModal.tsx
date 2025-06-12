@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { uploadImage } from '../lib/upload';
 
 interface AdModalProps {
   isOpen: boolean;
@@ -280,28 +279,34 @@ const AdModal: React.FC<AdModalProps> = ({ isOpen, onClose, onDownload }) => {
     }
   };
 
-  // 上传图片到Supabase存储桶
+  // 上传图片到Supabase存储桶（参考软件截图上传方式）
   const uploadImageToSupabase = async (file: File): Promise<string> => {
     try {
-      console.log("正在上传广告图片到Supabase...");
+      const fileName = `${Date.now()}-${file.name}`;
+      const filePath = `ads/${fileName}`;
       
-      // 使用封装的uploadImage函数，自动处理WebP转换
-      const { url, error } = await uploadImage(file, 'ads');
+      console.log("正在上传图片到Supabase...", filePath);
       
-      if (error) {
-        console.error("上传错误:", error);
-        throw error;
+      // 使用与软件截图相同的存储桶
+      const { error: uploadError } = await supabase.storage
+        .from('software-images')
+        .upload(filePath, file);
+      
+      if (uploadError) {
+        console.error("上传错误:", uploadError);
+        throw uploadError;
       }
       
-      if (!url) {
-        throw new Error('上传成功但未返回URL');
-      }
+      // 获取公共URL
+      const { data } = supabase.storage
+        .from('software-images')
+        .getPublicUrl(filePath);
       
-      console.log("广告图片上传成功，URL:", url);
-      return url;
+      console.log("图片上传成功，URL:", data.publicUrl);
+      return data.publicUrl;
     } catch (error) {
-      console.error("广告图片上传失败:", error);
-      throw new Error('广告图片上传失败');
+      console.error("图片上传失败:", error);
+      throw new Error('图片上传失败');
     }
   };
 

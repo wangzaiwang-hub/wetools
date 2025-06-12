@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import { uploadImage } from './upload';
 
 // Define backup data for when Supabase is unreachable
 export const SAMPLE_ADS = [
@@ -80,7 +79,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       'x-application-name': 'we-tools'
     },
     // Add retry logic for network instability
-    fetch: (url: RequestInfo | URL, options?: RequestInit): Promise<Response> => {
+    fetch: (url: string, options?: RequestInit): Promise<Response> => {
       // Maximum number of retries
       const MAX_RETRIES = 3;
       
@@ -107,7 +106,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
             console.warn('Possible CORS restriction, attempting fallback');
             
             // Create a mock Response for ads endpoint
-            if (url.toString().includes('/advertisements')) {
+            if (url.includes('/advertisements')) {
               console.log('Returning mock ad data');
               return new Response(JSON.stringify(SAMPLE_ADS), {
                 status: 200,
@@ -118,7 +117,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
             }
             
             // 处理RPC调用失败的情况
-            if (url.toString().includes('/rpc/get_software_star_counts')) {
+            if (url.includes('/rpc/get_software_star_counts')) {
               console.log('Returning mock star count data');
               return new Response(JSON.stringify(FALLBACK_STAR_COUNTS), {
                 status: 200,
@@ -129,7 +128,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
             }
             
             // 处理网站统计数据失败的情况
-            if (url.toString().includes('/website_stats')) {
+            if (url.includes('/website_stats')) {
               console.log('Returning mock website stats');
               return new Response(JSON.stringify(FALLBACK_STATS), {
                 status: 200,
@@ -237,20 +236,25 @@ export const toggleSoftwareStar = async (softwareId: string, userId: string) => 
 
 export const uploadAvatar = async (file: File, userId: string): Promise<string> => {
   try {
-    const fileToUpload = file;
-    // 使用新的 uploadImage 函数
-    const { url, error } = await uploadImage(fileToUpload);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}-${Math.random()}.${fileExt}`;
+    const filePath = `avatars/${fileName}`;
 
-    if (error) {
-      throw error;
-    }
-    if (!url) {
-      throw new Error('图片上传成功但未返回URL');
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      throw uploadError;
     }
 
-    return url;
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
   } catch (error) {
-    console.error('头像上传失败:', error);
+    console.error('Error uploading avatar:', error);
     throw error;
   }
 };
