@@ -111,7 +111,10 @@ const Pagination: React.FC<PaginationProps> = ({
             <button 
               key="left-ellipsis" 
               className="flex items-center justify-center w-10 h-10 rounded-full text-gray-500 hover:bg-gray-100"
-              onClick={() => setShowLeftGoInput(true)}
+              onClick={() => {
+                setShowRightGoInput(false); // 关闭右侧输入框
+                setShowLeftGoInput(true);
+              }}
               title="点击跳转到指定页"
             >
               ...
@@ -166,7 +169,10 @@ const Pagination: React.FC<PaginationProps> = ({
             <button 
               key="right-ellipsis" 
               className="flex items-center justify-center w-10 h-10 rounded-full text-gray-500 hover:bg-gray-100"
-              onClick={() => setShowRightGoInput(true)}
+              onClick={() => {
+                setShowLeftGoInput(false); // 关闭左侧输入框
+                setShowRightGoInput(true);
+              }}
               title="点击跳转到指定页"
             >
               ...
