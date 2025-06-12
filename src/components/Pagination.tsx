@@ -62,8 +62,9 @@ const Pagination: React.FC<PaginationProps> = ({
       );
     }
     
-    // 如果当前页不是第一页或第二页，显示左侧省略号
+    // 处理省略号逻辑
     if (currentPage > 3) {
+      // 当前页距离第一页较远，显示省略号或输入框
       if (showLeftGoInput) {
         // 显示左侧快速跳转输入框
         pages.push(
@@ -103,7 +104,7 @@ const Pagination: React.FC<PaginationProps> = ({
         );
       }
     } else if (currentPage === 3) {
-      // 如果当前页是第3页，显示第2页
+      // 当前页是3，显示2
       pages.push(
         <PageButton 
           key={2} 
@@ -113,22 +114,11 @@ const Pagination: React.FC<PaginationProps> = ({
           disabled={isLoading}
         />
       );
+    } else if (currentPage === 2) {
+      // 当前页是2，不需要额外处理，因为已经显示了1和2
     }
     
-    // 显示当前页的前一页（如果不是第一页）
-    if (currentPage > 1 && currentPage !== 2) {  // 避免重复显示第1页
-      pages.push(
-        <PageButton 
-          key={currentPage - 1} 
-          page={currentPage - 1} 
-          isActive={false}
-          onClick={() => onPageChange(currentPage - 1)} 
-          disabled={isLoading}
-        />
-      );
-    }
-    
-    // 显示当前页
+    // 显示当前页（永远显示）
     pages.push(
       <PageButton 
         key={currentPage} 
@@ -139,8 +129,8 @@ const Pagination: React.FC<PaginationProps> = ({
       />
     );
     
-    // 显示当前页的后一页（如果不是最后一页）
-    if (currentPage < totalPages && currentPage !== totalPages - 1) {  // 避免重复显示最后一页
+    // 显示当前页的后一页（如果有且不是最后一页）
+    if (currentPage < totalPages && currentPage !== totalPages - 1) {
       pages.push(
         <PageButton 
           key={currentPage + 1} 
@@ -152,8 +142,9 @@ const Pagination: React.FC<PaginationProps> = ({
       );
     }
     
-    // 如果当前页不是倒数第一页或倒数第二页，显示右侧省略号
+    // 处理右侧省略号逻辑
     if (currentPage < totalPages - 2) {
+      // 当前页距离最后一页较远，显示省略号或输入框
       if (showRightGoInput) {
         // 显示右侧快速跳转输入框
         pages.push(
@@ -193,7 +184,7 @@ const Pagination: React.FC<PaginationProps> = ({
         );
       }
     } else if (currentPage === totalPages - 2) {
-      // 如果当前页是倒数第3页，显示倒数第2页
+      // 当前页是倒数第3页，显示倒数第2页
       pages.push(
         <PageButton 
           key={totalPages - 1} 
@@ -205,8 +196,8 @@ const Pagination: React.FC<PaginationProps> = ({
       );
     }
     
-    // 始终显示最后一页（当当前页不是最后一页时）
-    if (currentPage !== totalPages) {
+    // 显示最后一页（当当前页不是最后一页时）
+    if (currentPage !== totalPages && totalPages > 1) {
       pages.push(
         <PageButton 
           key={totalPages} 
