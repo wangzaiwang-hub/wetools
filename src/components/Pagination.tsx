@@ -49,138 +49,164 @@ const Pagination: React.FC<PaginationProps> = ({
   const renderPageNumbers = () => {
     const pages = [];
     
-    // 最大显示的页码数
-    const maxVisiblePages = 7;
-    // 当前页前后各显示多少页
-    const siblingsCount = 2;
+    // 始终显示第一页
+    pages.push(
+      <PageButton 
+        key={1} 
+        page={1} 
+        isActive={currentPage === 1}
+        onClick={() => onPageChange(1)} 
+        disabled={isLoading}
+      />
+    );
     
-    // 计算起始和结束页
-    let startPage = Math.max(1, currentPage - siblingsCount);
-    let endPage = Math.min(totalPages, currentPage + siblingsCount);
-    
-    // 调整以确保我们最多显示 maxVisiblePages 个页码
-    if (endPage - startPage + 1 > maxVisiblePages) {
-      // 如果当前页靠近开始，则显示前面的页码
-      if (currentPage - startPage < endPage - currentPage) {
-        endPage = startPage + maxVisiblePages - 1;
+    // 如果当前页不是第一页或第二页，显示左侧省略号
+    if (currentPage > 3) {
+      if (showLeftGoInput) {
+        // 显示左侧快速跳转输入框
+        pages.push(
+          <div key="left-go" className="flex items-center bg-white rounded-full shadow-sm overflow-hidden border border-gray-200">
+            <span className="px-2 text-gray-600 bg-white">Go</span>
+            <input
+              type="text"
+              value={goToPage}
+              onChange={(e) => setGoToPage(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleGoToPage()}
+              className="w-12 h-10 text-center border-none focus:outline-none focus:ring-0 bg-white"
+              placeholder="页码"
+              autoFocus
+            />
+            <button
+              onClick={handleGoToPage}
+              className="px-3 h-10 bg-blue-50 text-blue-500 hover:bg-blue-100 transition-colors border-l border-gray-200"
+            >
+              确定
+            </button>
+          </div>
+        );
       } else {
-        // 如果当前页靠近结束，则显示后面的页码
-        startPage = endPage - maxVisiblePages + 1;
+        // 显示可点击的省略号
+        pages.push(
+          <button 
+            key="left-ellipsis" 
+            className="flex items-center justify-center w-10 h-10 rounded-full text-gray-500 hover:bg-gray-100"
+            onClick={() => {
+              setShowRightGoInput(false); // 关闭右侧输入框
+              setShowLeftGoInput(true);
+            }}
+            title="点击跳转到指定页"
+          >
+            ...
+          </button>
+        );
       }
-    }
-    
-    // 添加第一页
-    if (startPage > 1) {
+    } else if (currentPage === 3) {
+      // 如果当前页是第3页，显示第2页
       pages.push(
         <PageButton 
-          key={1} 
-          page={1} 
-          isActive={currentPage === 1}
-          onClick={() => onPageChange(1)} 
-          disabled={isLoading}
-        />
-      );
-      
-      // 如果不直接连接到第一页，添加省略号或输入框
-      if (startPage > 2) {
-        if (showLeftGoInput) {
-          // 显示左侧快速跳转输入框
-          pages.push(
-            <div key="left-go" className="flex items-center bg-white rounded-full shadow-sm overflow-hidden border border-gray-200">
-              <span className="px-2 text-gray-600 bg-white">Go</span>
-              <input
-                type="text"
-                value={goToPage}
-                onChange={(e) => setGoToPage(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleGoToPage()}
-                className="w-12 h-10 text-center border-none focus:outline-none focus:ring-0 bg-white"
-                placeholder="页码"
-                autoFocus
-              />
-              <button
-                onClick={handleGoToPage}
-                className="px-3 h-10 bg-blue-50 text-blue-500 hover:bg-blue-100 transition-colors border-l border-gray-200"
-              >
-                确定
-              </button>
-            </div>
-          );
-        } else {
-          // 显示可点击的省略号，点击直接显示输入框
-          pages.push(
-            <button 
-              key="left-ellipsis" 
-              className="flex items-center justify-center w-10 h-10 rounded-full text-gray-500 hover:bg-gray-100"
-              onClick={() => {
-                setShowRightGoInput(false); // 关闭右侧输入框
-                setShowLeftGoInput(true);
-              }}
-              title="点击跳转到指定页"
-            >
-              ...
-            </button>
-          );
-        }
-      }
-    }
-    
-    // 添加中间的页码
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(
-        <PageButton 
-          key={i} 
-          page={i} 
-          isActive={currentPage === i}
-          onClick={() => onPageChange(i)} 
+          key={2} 
+          page={2} 
+          isActive={false}
+          onClick={() => onPageChange(2)} 
           disabled={isLoading}
         />
       );
     }
     
-    // 添加最后一页
-    if (endPage < totalPages) {
-      // 如果不直接连接到最后一页，添加省略号或输入框
-      if (endPage < totalPages - 1) {
-        if (showRightGoInput) {
-          // 显示右侧快速跳转输入框
-          pages.push(
-            <div key="right-go" className="flex items-center bg-white rounded-full shadow-sm overflow-hidden border border-gray-200">
-              <span className="px-2 text-gray-600 bg-white">Go</span>
-              <input
-                type="text"
-                value={goToPage}
-                onChange={(e) => setGoToPage(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleGoToPage()}
-                className="w-12 h-10 text-center border-none focus:outline-none focus:ring-0 bg-white"
-                placeholder="页码"
-                autoFocus
-              />
-              <button
-                onClick={handleGoToPage}
-                className="px-3 h-10 bg-blue-50 text-blue-500 hover:bg-blue-100 transition-colors border-l border-gray-200"
-              >
-                确定
-              </button>
-            </div>
-          );
-        } else {
-          // 显示可点击的省略号，点击直接显示输入框
-          pages.push(
-            <button 
-              key="right-ellipsis" 
-              className="flex items-center justify-center w-10 h-10 rounded-full text-gray-500 hover:bg-gray-100"
-              onClick={() => {
-                setShowLeftGoInput(false); // 关闭左侧输入框
-                setShowRightGoInput(true);
-              }}
-              title="点击跳转到指定页"
+    // 显示当前页的前一页（如果不是第一页）
+    if (currentPage > 1) {
+      pages.push(
+        <PageButton 
+          key={currentPage - 1} 
+          page={currentPage - 1} 
+          isActive={false}
+          onClick={() => onPageChange(currentPage - 1)} 
+          disabled={isLoading}
+        />
+      );
+    }
+    
+    // 显示当前页
+    if (currentPage > 1 && currentPage < totalPages) {
+      pages.push(
+        <PageButton 
+          key={currentPage} 
+          page={currentPage} 
+          isActive={true}
+          onClick={() => onPageChange(currentPage)} 
+          disabled={isLoading}
+        />
+      );
+    }
+    
+    // 显示当前页的后一页（如果不是最后一页）
+    if (currentPage < totalPages) {
+      pages.push(
+        <PageButton 
+          key={currentPage + 1} 
+          page={currentPage + 1} 
+          isActive={false}
+          onClick={() => onPageChange(currentPage + 1)} 
+          disabled={isLoading}
+        />
+      );
+    }
+    
+    // 如果当前页不是倒数第一页或倒数第二页，显示右侧省略号
+    if (currentPage < totalPages - 2) {
+      if (showRightGoInput) {
+        // 显示右侧快速跳转输入框
+        pages.push(
+          <div key="right-go" className="flex items-center bg-white rounded-full shadow-sm overflow-hidden border border-gray-200">
+            <span className="px-2 text-gray-600 bg-white">Go</span>
+            <input
+              type="text"
+              value={goToPage}
+              onChange={(e) => setGoToPage(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleGoToPage()}
+              className="w-12 h-10 text-center border-none focus:outline-none focus:ring-0 bg-white"
+              placeholder="页码"
+              autoFocus
+            />
+            <button
+              onClick={handleGoToPage}
+              className="px-3 h-10 bg-blue-50 text-blue-500 hover:bg-blue-100 transition-colors border-l border-gray-200"
             >
-              ...
+              确定
             </button>
-          );
-        }
+          </div>
+        );
+      } else {
+        // 显示可点击的省略号
+        pages.push(
+          <button 
+            key="right-ellipsis" 
+            className="flex items-center justify-center w-10 h-10 rounded-full text-gray-500 hover:bg-gray-100"
+            onClick={() => {
+              setShowLeftGoInput(false); // 关闭左侧输入框
+              setShowRightGoInput(true);
+            }}
+            title="点击跳转到指定页"
+          >
+            ...
+          </button>
+        );
       }
-      
+    } else if (currentPage === totalPages - 2) {
+      // 如果当前页是倒数第3页，显示倒数第2页
+      pages.push(
+        <PageButton 
+          key={totalPages - 1} 
+          page={totalPages - 1} 
+          isActive={false}
+          onClick={() => onPageChange(totalPages - 1)} 
+          disabled={isLoading}
+        />
+      );
+    }
+    
+    // 始终显示最后一页
+    if (totalPages > 1) {
       pages.push(
         <PageButton 
           key={totalPages} 
