@@ -705,8 +705,8 @@ const WebsiteDirectory = () => {
           <div>
             <h3 className="text-lg font-medium text-gray-800 mb-4">联系我们</h3>
             <div className="space-y-2 text-gray-600 text-sm">
-              <p><a href="https://blog.wctw.fun/">博客：沙漠一只雕</a></p>
-              <p><a href="https://mail.google.com/mail/u/0/?fs=1&to=junqianxi.hub@gmail.com&tf=cm">邮箱：junqianxi.hub@gmail.com</a></p>
+              <p><a href="https://blog.wctw.fun/" className="block hover:text-blue-500 transition-colors">博客：沙漠一只雕</a></p>
+              <p><a href="https://mail.google.com/mail/u/0/?fs=1&to=junqianxi.hub@gmail.com&tf=cm" className="block hover:text-blue-500 transition-colors">邮箱：junqianxi.hub@gmail.com</a></p>
               <p>微信公众号：wctw.hub</p>
               <div className="mt-4">
                 <img 
