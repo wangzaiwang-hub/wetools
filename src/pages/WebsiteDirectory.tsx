@@ -723,7 +723,7 @@ const WebsiteDirectory = () => {
             <div className="space-y-2 text-gray-600 text-sm">
               <p>本网站由 WE Tools 团队运营维护，使用本网站即表示您同意遵守我们的服务条款和隐私政策。</p>
               <p>© 2025 WE Tools. 保留所有权利。</p>
-              <p>鄂ICP备2024099994号</p>
+              <p>豫ICP备2024099994号-1</p>
               <div className="space-y-1 mt-4">
                 <a href="/terms" className="block hover:text-blue-500 transition-colors">服务条款</a>
                 <a href="/privacy" className="block hover:text-blue-500 transition-colors">隐私政策</a>
