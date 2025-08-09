@@ -128,7 +128,7 @@ const Privacy = () => {
               </ul>
               <div className="mt-4">
                 <img 
-                  src="https://wangzaiwang.oss-cn-beijing.aliyuncs.com/image/QR.webp" 
+                  src="https://gitee.com/wctw-hub/picture/raw/main/blog/QR.webp" 
                   alt="微信公众号二维码" 
                   className="w-32 h-32 object-cover rounded-lg shadow-sm"
                 />
