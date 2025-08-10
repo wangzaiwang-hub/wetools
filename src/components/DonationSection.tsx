@@ -17,7 +17,7 @@ const DonationSection: React.FC = () => {
                 <h3 className="text-lg font-medium">推荐使用支付宝</h3>
               </div>
               <img 
-                src="https://wangzaiwang.oss-cn-beijing.aliyuncs.com/image/9c0c4bdd748fa6664b4a26ce3526eb0.webp" 
+                src="https://gitee.com/wctw-hub/picture/raw/main/blog/AliPay.webp" 
                 alt="支付宝收款码" 
                 className="w-full h-auto rounded-lg mb-2"
                 onError={(e) => {
@@ -35,7 +35,7 @@ const DonationSection: React.FC = () => {
                 <h3 className="text-lg font-medium">推荐使用微信支付</h3>
               </div>
               <img 
-                src="https://wangzaiwang.oss-cn-beijing.aliyuncs.com/image/a8cf1b0f2dd7f933812ecf87d2bf7d9.webp" 
+                src="https://gitee.com/wctw-hub/picture/raw/main/blog/wechatPay.webp" 
                 alt="微信收款码" 
                 className="w-full h-auto rounded-lg mb-2"
                 onError={(e) => {
