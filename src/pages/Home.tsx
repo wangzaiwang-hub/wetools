@@ -11,11 +11,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import MessageBoard from '../components/MessageBoard';
 import { DEFAULT_PREFERENCES } from '../contexts/AuthContext';
-import AIAssistant from '../components/AIAssistant';
 import { Helmet } from 'react-helmet';
 import SupabaseStatusChecker from '../components/SupabaseStatusChecker';
-import { useChatbot } from '../contexts/ChatbotContext';
-import ChatbotLoader from '../components/ChatbotLoader';
 
 interface Software {
   id: string;
@@ -51,7 +48,6 @@ interface OperatingSystem {
 
 const Home = () => {
   const { user, userPreferences } = useAuth();
-  const { isChatbotEnabled } = useChatbot();
   const navigate = useNavigate();
   const [software, setSoftware] = useState<Software[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -591,14 +587,6 @@ const Home = () => {
 
       <SupabaseStatusChecker show={showNetworkWarning} />
 
-      <ChatbotLoader 
-        conversationStarters={[
-          {prompt: '我想找一个快捷截图的软件？'},
-          {prompt: '我想找几个学编程的网站？'},
-          {prompt: '给我推荐几个免费下载游戏的网站?'},
-        ]}
-      />
-
       <div className="max-w-7xl mx-auto">
         {/* 网站导航按钮 */}
         <div className="mb-8">
@@ -885,7 +873,7 @@ const Home = () => {
               </button>
               <div className="w-80 h-80 bg-white border border-gray-200 rounded-xl overflow-hidden mx-auto">
                 <img 
-                  src="https://gitee.com/wctw-hub/picture/raw/main/blog/AliPay.webp" 
+                  src="https://wangzaiwang.oss-cn-beijing.aliyuncs.com/image/9c0c4bdd748fa6664b4a26ce3526eb0.webp" 
                   alt="支付宝二维码" 
                   className="w-full h-full object-contain"
                 />
@@ -902,7 +890,7 @@ const Home = () => {
               </button>
               <div className="w-80 h-80 bg-white border border-gray-200 rounded-xl overflow-hidden mx-auto">
                 <img 
-                  src="https://gitee.com/wctw-hub/picture/raw/main/blog/wechatPay.webp" 
+                  src="https://wangzaiwang.oss-cn-beijing.aliyuncs.com/image/a8cf1b0f2dd7f933812ecf87d2bf7d9.webp" 
                   alt="微信支付二维码" 
                   className="w-full h-full object-contain"
                 />
@@ -933,12 +921,12 @@ const Home = () => {
           <div>
             <h3 className="text-lg font-medium text-gray-800 mb-4">联系我们</h3>
             <div className="space-y-2 text-gray-600 text-sm">
-              <p><a href="https://blog.wctw.fun/" className="block hover:text-blue-500 transition-colors">博客：沙漠一只雕</a></p>
-              <p><a href="https://mail.google.com/mail/u/0/?fs=1&to=junqianxi.hub@gmail.com&tf=cm" className="block hover:text-blue-500 transition-colors">邮箱：junqianxi.hub@gmail.com</a></p>
+              <p><a href="https://blog.wctw.fun/">博客：沙漠一只雕</a></p>
+              <p><a href="https://mail.google.com/mail/u/0/?fs=1&to=junqianxi.hub@gmail.com&tf=cm">邮箱：junqianxi.hub@gmail.com</a></p>
               <p>微信公众号：wctw.hub</p>
               <div className="mt-4">
                 <img 
-                  src="https://gitee.com/wctw-hub/picture/raw/main/blog/QR.webp" 
+                  src="https://wangzaiwang.oss-cn-beijing.aliyuncs.com/image/QR.webp" 
                   alt="微信公众号二维码" 
                   className="w-32 h-32 mx-auto"
                 />
