@@ -10,8 +10,6 @@ import { clsx } from 'clsx';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { DEFAULT_PREFERENCES } from '../contexts/AuthContext';
-import { useChatbot } from '../contexts/ChatbotContext';
-import ChatbotLoader from '../components/ChatbotLoader';
 
 // 备用网站数据
 const FALLBACK_WEBSITES = [
@@ -181,7 +179,6 @@ interface Category {
 const WebsiteDirectory = () => {
   const { user, userPreferences } = useAuth();
   const navigate = useNavigate();
-  const { isChatbotEnabled } = useChatbot();
   const [websites, setWebsites] = useState<Website[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -446,7 +443,7 @@ const WebsiteDirectory = () => {
         break;
       case 'popular':
         // 按星星数量从多到少排序
-        filtered.sort((a, b) => b.starCount - a.starCount);
+        filtered.sort((b, a) => a.starCount - b.starCount);
         break;
       default:
         break;
@@ -499,14 +496,6 @@ const WebsiteDirectory = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 p-6">
-      <ChatbotLoader 
-        conversationStarters={[
-          {prompt: '我想找一个学习编程的网站？'},
-          {prompt: '有什么好的开发者社区推荐？'},
-          {prompt: '推荐一些技术文档网站？'},
-        ]}
-      />
-      
       <div className="max-w-7xl mx-auto">
         {/* 返回软件按钮 */}
         <div className="mb-8">
@@ -695,9 +684,8 @@ const WebsiteDirectory = () => {
             <h3 className="text-lg font-medium text-gray-800 mb-4">免责声明</h3>
             <div className="space-y-2 text-gray-600 text-sm">
               <p>本网站所提供的所有软件和工具仅供学习和研究使用，请勿用于任何商业用途。</p>
-              <p>用户在使用本网站服务的过程中应遵守相关法律法规，不得从事违法违规行为。</p>
-              <p>本站信息来自网络，版权争议与本站无关。您必须在下载后的24个小时之内，从您的电脑中彻底删除上述内容。如果您喜欢该程序，请支持正版软件，购买注册，得到更好的正版服务。</p>
-              <p>如有侵权请与我们联系处理。</p>
+              <p>用户在使用本网站服务的过程中应遵守相关法律法规，不得从事违法违规行为，对于因用户使用不当或违规操作导致的任何损失，本网站概不负责。</p>
+              <p>本网站展示的第三方软件的所有权归其各自所有者所有，如有侵权请联系我们，我们将及时处理。</p>
             </div>
           </div>
 
@@ -705,12 +693,12 @@ const WebsiteDirectory = () => {
           <div>
             <h3 className="text-lg font-medium text-gray-800 mb-4">联系我们</h3>
             <div className="space-y-2 text-gray-600 text-sm">
-              <p><a href="https://blog.wctw.fun/" className="block hover:text-blue-500 transition-colors">博客：沙漠一只雕</a></p>
-              <p><a href="https://mail.google.com/mail/u/0/?fs=1&to=junqianxi.hub@gmail.com&tf=cm" className="block hover:text-blue-500 transition-colors">邮箱：junqianxi.hub@gmail.com</a></p>
+              <p><a href="https://blog.wctw.fun/">博客：沙漠一只雕</a></p>
+              <p><a href="https://mail.google.com/mail/u/0/?fs=1&to=junqianxi.hub@gmail.com&tf=cm">邮箱：junqianxi.hub@gmail.com</a></p>
               <p>微信公众号：wctw.hub</p>
               <div className="mt-4">
                 <img 
-                  src="https://gitee.com/wctw-hub/picture/raw/main/blog/QR.webp" 
+                  src="https://wangzaiwang.oss-cn-beijing.aliyuncs.com/image/QR.webp" 
                   alt="微信公众号二维码" 
                   className="w-32 h-32 mx-auto"
                 />
@@ -724,7 +712,7 @@ const WebsiteDirectory = () => {
             <div className="space-y-2 text-gray-600 text-sm">
               <p>本网站由 WE Tools 团队运营维护，使用本网站即表示您同意遵守我们的服务条款和隐私政策。</p>
               <p>© 2025 WE Tools. 保留所有权利。</p>
-              <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">豫ICP备2024099994号-1</a></p>
+              <p>鄂ICP备2024099994号</p>
               <div className="space-y-1 mt-4">
                 <a href="/terms" className="block hover:text-blue-500 transition-colors">服务条款</a>
                 <a href="/privacy" className="block hover:text-blue-500 transition-colors">隐私政策</a>
