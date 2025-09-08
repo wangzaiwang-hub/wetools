@@ -583,6 +583,24 @@ const Home = () => {
       <Helmet>
         <title>WE Tools - 实用工具和网站推荐</title>
         <meta name="description" content="发现最好用的工具和网站资源，轻松找到高效率软件" />
+        <script src="https://o.alicdn.com/appflow/chatbot/v1/AppflowChatSDK.js"></script>
+        <script>
+          {`
+            window.addEventListener('load', function() {
+              if (window.APPFLOW_CHAT_SDK) {
+                window.APPFLOW_CHAT_SDK.init({
+                  integrateConfig: {
+                    integrateId: 'cit-623ebc0d2f4b4279bf06',
+                    domain: {
+                      requestDomain: 'http://ai.wetools.wctw.fun'
+                    },
+                    draggable: true
+                  }
+                });
+              }
+            });
+          `}
+        </script>
       </Helmet>
 
       <SupabaseStatusChecker show={showNetworkWarning} />
