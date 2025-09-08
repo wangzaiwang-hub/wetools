@@ -10,6 +10,7 @@ import { clsx } from 'clsx';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { DEFAULT_PREFERENCES } from '../contexts/AuthContext';
+import { Helmet } from 'react-helmet';
 
 // 备用网站数据
 const FALLBACK_WEBSITES = [
@@ -496,6 +497,29 @@ const WebsiteDirectory = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 p-6">
+      <Helmet>
+        <title>WE Tools - 网站导航</title>
+        <meta name="description" content="发现优质的网站资源，提高您的工作效率和浏览体验" />
+        <script src="https://o.alicdn.com/appflow/chatbot/v1/AppflowChatSDK.js"></script>
+        <script>
+          {`
+            window.addEventListener('load', function() {
+              if (window.APPFLOW_CHAT_SDK) {
+                window.APPFLOW_CHAT_SDK.init({
+                  integrateConfig: {
+                    integrateId: 'cit-623ebc0d2f4b4279bf06',
+                    domain: {
+                      requestDomain: 'http://ai.wetools.wctw.fun'
+                    },
+                    draggable: true
+                  }
+                });
+              }
+            });
+          `}
+        </script>
+      </Helmet>
+
       <div className="max-w-7xl mx-auto">
         {/* 返回软件按钮 */}
         <div className="mb-8">
