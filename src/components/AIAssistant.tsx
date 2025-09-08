@@ -188,9 +188,21 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ appId, apiKey }) => {
       
       // 添加错误消息
       const errorMessage = error instanceof Error ? error.message : '未知错误';
-      const detailedError = errorMessage.includes('网络请求失败') 
-        ? `网络连接问题，请检查您的网络设置。\n\n${isDebugMode ? errorMessage : ''}`
-        : `抱歉，我遇到了一些技术问题，请稍后再试。\n\n${isDebugMode ? errorMessage : ''}`;
+      let detailedError = '';
+      
+      // 根据错误类型提供不同的错误信息
+      if (errorMessage.includes('CORS') || errorMessage.includes('Failed to fetch')) {
+        detailedError = '网络连接问题，无法连接到AI服务。请检查网络设置或稍后再试。';
+      } else if (errorMessage.includes('网络请求失败')) {
+        detailedError = '网络请求失败，请检查您的网络连接。';
+      } else {
+        detailedError = '抱歉，我遇到了一些技术问题，请稍后再试。';
+      }
+      
+      // 添加调试信息（仅在调试模式下显示详细错误）
+      if (isDebugMode) {
+        detailedError += `\n\n详细错误信息: ${errorMessage}`;
+      }
       
       setMessages(prev => {
         // 查找最后一条非用户消息
