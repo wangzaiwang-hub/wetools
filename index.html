@@ -17,6 +17,23 @@
       gtag('js', new Date());
       gtag('config', 'G-HT9LYL16V9');
     </script>
+    <!-- 阿里云Appflow Chat SDK -->
+    <script src="https://o.alicdn.com/appflow/chatbot/v1/AppflowChatSDK.js"></script>
+    <script>
+      window.addEventListener('load', function() {
+        if (window.APPFLOW_CHAT_SDK) {
+          window.APPFLOW_CHAT_SDK.init({
+            integrateConfig: {
+              integrateId: 'cit-623ebc0d2f4b4279bf06',
+              domain: {
+                requestDomain: 'http://ai.wetools.wctw.fun'
+              },
+              draggable: true
+            }
+          });
+        }
+      });
+    </script>
     <!-- 核心 SEO 元标签 -->
     <title>WE Tools - 全球优质软件与网站导航平台 | 效率工具一站式工具箱</title>
     <meta name="description" content="WE Tools 精选全球免费高效工具，涵盖办公效率、设计创意、开发编程等领域，提供软件下载与网站导航服务，助力提升您的工作流与数字生活体验。" />
@@ -56,18 +73,6 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-        <script src="https://o.alicdn.com/appflow/chatbot/v1/AppflowChatSDK.js"></script>
-<script>
-    window.APPFLOW_CHAT_SDK.init({
-    integrateConfig: {
-        integrateId: 'cit-623ebc0d2f4b4279bf06',
-        domain: {
-            requestDomain: 'http://ai.wetools.wctw.fun'
-            },
-            draggable: true,//是否可拖拽
-          }
-        });
-      </script>
 
     <!-- 可选: 百度统计/Google Analytics 代码 -->
     <!-- <script>
