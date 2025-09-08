@@ -152,7 +152,7 @@ export function ChatbotProvider({ children }: { children: ReactNode }) {
         if (!(window as any).CHATBOT_CONFIG) {
           console.log("设置聊天机器人配置");
           (window as any).CHATBOT_CONFIG = {
-            endpoint: "https://webchatbot-cwhv-wkbmlqpeaa.cn-hangzhou.fcapp.run/chat",
+            endpoint: "/api/chat",  // 修改为使用本地API路由
             displayByDefault: false,  // 改为false，不默认展开对话窗口
             title: 'AI 助手',
             draggable: true,         // 确保可拖动
