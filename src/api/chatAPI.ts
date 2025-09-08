@@ -18,13 +18,8 @@ const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  * 用于解决在不同环境下的路径问题
  */
 const getBaseUrl = () => {
-  const isLocal = window.location.hostname === 'localhost' || 
-                  window.location.hostname.includes('stackblitz') || 
-                  window.location.hostname.includes('webcontainer');
-                  
-  // 如果是本地开发、Stackblitz或WebContainer环境,
-  // 使用相对路径，否则使用绝对路径
-  return isLocal ? '' : window.location.origin;
+  // 总是使用相对路径，避免跨域问题
+  return '';
 };
 
 /**
