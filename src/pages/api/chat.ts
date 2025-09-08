@@ -1,5 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+// 添加CORS头函数
+function setCORSHeaders(res: NextApiResponse) {
+  res.setHeader('Access-Control-Allow-Origin', '*');  // 在生产环境中应该指定具体的域名
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+}
+
 // 重试配置
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
@@ -23,6 +31,15 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // 处理预检请求
+  if (req.method === 'OPTIONS') {
+    setCORSHeaders(res);
+    return res.status(200).end();
+  }
+
+  // 设置CORS头
+  setCORSHeaders(res);
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
