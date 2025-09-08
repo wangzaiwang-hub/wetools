@@ -722,7 +722,7 @@ const WebsiteDirectory = () => {
               <p>微信公众号：wctw.hub</p>
               <div className="mt-4">
                 <img 
-                  src="https://wangzaiwang.oss-cn-beijing.aliyuncs.com/image/QR.webp" 
+                  src="https://gitee.com/wctw-hub/picture/raw/main/blog/QR.webp" 
                   alt="微信公众号二维码" 
                   className="w-32 h-32 mx-auto"
                 />
