@@ -891,7 +891,7 @@ const Home = () => {
               </button>
               <div className="w-80 h-80 bg-white border border-gray-200 rounded-xl overflow-hidden mx-auto">
                 <img 
-                  src="https://wangzaiwang.oss-cn-beijing.aliyuncs.com/image/9c0c4bdd748fa6664b4a26ce3526eb0.webp" 
+                  src="https://gitee.com/wctw-hub/picture/raw/main/blog/AliPay.webp" 
                   alt="支付宝二维码" 
                   className="w-full h-full object-contain"
                 />
@@ -908,7 +908,7 @@ const Home = () => {
               </button>
               <div className="w-80 h-80 bg-white border border-gray-200 rounded-xl overflow-hidden mx-auto">
                 <img 
-                  src="https://wangzaiwang.oss-cn-beijing.aliyuncs.com/image/a8cf1b0f2dd7f933812ecf87d2bf7d9.webp" 
+                  src="https://gitee.com/wctw-hub/picture/raw/main/blog/wechatPay.webp" 
                   alt="微信支付二维码" 
                   className="w-full h-full object-contain"
                 />
@@ -944,7 +944,7 @@ const Home = () => {
               <p>微信公众号：wctw.hub</p>
               <div className="mt-4">
                 <img 
-                  src="https://wangzaiwang.oss-cn-beijing.aliyuncs.com/image/QR.webp" 
+                  src="https://gitee.com/wctw-hub/picture/raw/main/blog/QR.webp" 
                   alt="微信公众号二维码" 
                   className="w-32 h-32 mx-auto"
                 />
