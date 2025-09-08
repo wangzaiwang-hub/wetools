@@ -3,7 +3,6 @@ import { Toaster } from 'react-hot-toast';
 import { lazy, Suspense, useEffect } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import { AdvertisementProvider } from './contexts/AdvertisementContext';
-import { ChatbotProvider } from './contexts/ChatbotContext';
 import Navbar from './components/Navbar';
 import { supabase } from './lib/supabase';
 import toast from 'react-hot-toast';
@@ -63,28 +62,26 @@ function App() {
     <AuthProvider>
       <AdvertisementProvider>
         <Router>
-          <ChatbotProvider>
-            <Navbar />
-            <Toaster position="top-right" />
-            <Suspense fallback={<LoadingSpinner />}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/disclaimer" element={<Disclaimer />} />
-                <Route path="/websites" element={<WebsiteDirectory />} />
-                <Route path="/software/:id" element={<SoftwareDetail />} />
-                <Route path="/website/:id" element={<WebsiteDetail />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/auth/callback" element={<AuthCallbackHandler />} />
-                <Route path="/auth/qq-callback" element={<QQCallback />} />
-              </Routes>
-            </Suspense>
-          </ChatbotProvider>
+          <Navbar />
+          <Toaster position="top-right" />
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/disclaimer" element={<Disclaimer />} />
+              <Route path="/websites" element={<WebsiteDirectory />} />
+              <Route path="/software/:id" element={<SoftwareDetail />} />
+              <Route path="/website/:id" element={<WebsiteDetail />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/auth/callback" element={<AuthCallbackHandler />} />
+              <Route path="/auth/qq-callback" element={<QQCallback />} />
+            </Routes>
+          </Suspense>
         </Router>
       </AdvertisementProvider>
     </AuthProvider>
