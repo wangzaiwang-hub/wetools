@@ -18,21 +18,62 @@
       gtag('config', 'G-HT9LYL16V9');
     </script>
     <!-- 阿里云Appflow Chat SDK -->
-    <script src="https://o.alicdn.com/appflow/chatbot/v1/AppflowChatSDK.js"></script>
+    <script src="https://o.alicdn.com/appflow/chatbot/v1/AppflowChatSDK.js" 
+            onerror="console.error('阿里云Appflow Chat SDK加载失败')"></script>
     <script>
-      window.addEventListener('load', function() {
-        if (window.APPFLOW_CHAT_SDK) {
-          window.APPFLOW_CHAT_SDK.init({
-            integrateConfig: {
-              integrateId: 'cit-623ebc0d2f4b4279bf06',
-              domain: {
-                requestDomain: 'http://ai.wetools.wctw.fun'
-              },
-              draggable: true
-            }
-          });
+      console.log('阿里云Appflow Chat SDK脚本标签已添加');
+      
+      // 检查SDK是否加载成功
+      setTimeout(() => {
+        if (typeof window.APPFLOW_CHAT_SDK === 'undefined') {
+          console.error('阿里云Appflow Chat SDK未正确加载，请检查网络连接或脚本地址');
         }
-      });
+      }, 3000);
+      
+      // 确保在SDK加载完成后初始化
+      function initChatSDK() {
+        console.log('检查APPFLOW_CHAT_SDK是否存在:', typeof window.APPFLOW_CHAT_SDK !== 'undefined');
+        
+        if (window.APPFLOW_CHAT_SDK) {
+          console.log('开始初始化阿里云Appflow Chat SDK');
+          
+          try {
+            window.APPFLOW_CHAT_SDK.init({
+              integrateConfig: {
+                integrateId: 'cit-623ebc0d2f4b4279bf06',
+                domain: {
+                  requestDomain: 'http://ai.wetools.wctw.fun'
+                },
+                draggable: true
+              },
+              displayConfig: {
+                zIndex: 9999,
+                position: 'right'
+              },
+              aiChatOptions: {
+                displayOptions: {
+                  defaultMode: 'CHAT_BUBBLE'
+                }
+              }
+            });
+            
+            console.log('阿里云Appflow Chat SDK初始化成功');
+          } catch (error) {
+            console.error('阿里云Appflow Chat SDK初始化失败:', error);
+          }
+        } else {
+          console.log('APPFLOW_CHAT_SDK尚未准备好，等待100ms后重试');
+          setTimeout(initChatSDK, 100);
+        }
+      }
+      
+      // 页面加载完成后开始初始化
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initChatSDK);
+      } else {
+        // DOM已经加载完成
+        initChatSDK();
+      }
     </script>
     <!-- 核心 SEO 元标签 -->
     <title>WE Tools - 全球优质软件与网站导航平台 | 效率工具一站式工具箱</title>
@@ -72,7 +113,60 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- AI助手手动触发按钮 -->
+    <div id="ai-assistant-trigger" style="position: fixed; bottom: 20px; right: 20px; z-index: 10000; display: none;">
+      <button id="ai-assistant-button" 
+              style="background: #1464E4; color: white; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 24px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"
+              title="打开AI助手">
+        💬
+      </button>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // 页面加载完成后显示AI助手触发按钮并添加事件监听器
+      window.addEventListener('load', function() {
+        // 显示触发按钮
+        const trigger = document.getElementById('ai-assistant-trigger');
+        if (trigger) {
+          trigger.style.display = 'block';
+        }
+        
+        // 添加按钮点击事件
+        const button = document.getElementById('ai-assistant-button');
+        if (button) {
+          button.addEventListener('click', function() {
+            console.log('点击AI助手按钮');
+            try {
+              // 尝试显示聊天窗口
+              if (window.APPFLOW_CHAT_SDK) {
+                // 检查是否有show方法
+                if (window.APPFLOW_CHAT_SDK.show) {
+                  window.APPFLOW_CHAT_SDK.show();
+                  console.log('已调用APPFLOW_CHAT_SDK.show()');
+                } 
+                // 检查是否有toggle方法
+                else if (window.APPFLOW_CHAT_SDK.toggle) {
+                  window.APPFLOW_CHAT_SDK.toggle();
+                  console.log('已调用APPFLOW_CHAT_SDK.toggle()');
+                }
+                // 检查是否有open方法
+                else if (window.APPFLOW_CHAT_SDK.open) {
+                  window.APPFLOW_CHAT_SDK.open();
+                  console.log('已调用APPFLOW_CHAT_SDK.open()');
+                }
+                else {
+                  console.log('APPFLOW_CHAT_SDK没有可用的显示方法');
+                }
+              } else {
+                console.log('APPFLOW_CHAT_SDK未定义');
+              }
+            } catch (error) {
+              console.error('显示AI助手时出错:', error);
+            }
+          });
+        }
+      });
+    </script>
 
     <!-- 可选: 百度统计/Google Analytics 代码 -->
     <!-- <script>
