@@ -42,7 +42,7 @@
               integrateConfig: {
                 integrateId: 'cit-623ebc0d2f4b4279bf06',
                 domain: {
-                  requestDomain: 'http://ai.wetools.wctw.fun'
+                  requestDomain: 'https://ai.wetools.wctw.fun'  // 改为HTTPS
                 },
                 draggable: true
               },
@@ -154,8 +154,14 @@
                   window.APPFLOW_CHAT_SDK.open();
                   console.log('已调用APPFLOW_CHAT_SDK.open()');
                 }
+                // 检查是否有launch方法
+                else if (window.APPFLOW_CHAT_SDK.launch) {
+                  window.APPFLOW_CHAT_SDK.launch();
+                  console.log('已调用APPFLOW_CHAT_SDK.launch()');
+                }
                 else {
                   console.log('APPFLOW_CHAT_SDK没有可用的显示方法');
+                  console.log('APPFLOW_CHAT_SDK对象:', window.APPFLOW_CHAT_SDK);
                 }
               } else {
                 console.log('APPFLOW_CHAT_SDK未定义');
