@@ -375,13 +375,15 @@ export const recoverSession = async () => {
   console.log('尝试恢复会话...');
   
   try {
-    // 首先尝试获取当前会话
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    // 清除可能存在的无效token
+    const allKeys = Object.keys(localStorage);
+    const expiredOrInvalidKeys = allKeys.filter(key => 
+      key.includes('supabase.auth.token') && localStorage.getItem(key)?.includes('error')
+    );
     
-    // 如果获取会话失败，执行全面清理
-    if (sessionError) {
-      console.log('获取会话失败，执行全面清理:', sessionError);
-      await performComprehensiveCleanup();
+    if (expiredOrInvalidKeys.length > 0) {
+      console.log('检测到可能无效的会话token，正在清理:', expiredOrInvalidKeys);
+      expiredOrInvalidKeys.forEach(key => localStorage.removeItem(key));
     }
     
     // 检查是否有QQ登录标记
@@ -392,18 +394,8 @@ export const recoverSession = async () => {
       localStorage.removeItem('qq_login_attempt');
     }
 
-    // 如果有有效会话，尝试刷新；否则返回无会话状态
-    let data, error;
-    if (sessionData?.session) {
-      // 强制刷新会话
-      const refreshResult = await supabase.auth.refreshSession();
-      data = refreshResult.data;
-      error = refreshResult.error;
-    } else {
-      // 没有现有会话，直接返回
-      console.log('没有现有会话可恢复');
-      return { success: false, session: null, error: null };
-    }
+    // 强制刷新会话
+    const { data, error } = await supabase.auth.refreshSession();
     
     if (error) {
       console.error('会话刷新失败:', error);
@@ -412,7 +404,13 @@ export const recoverSession = async () => {
       if (error.status === 400 || error.status === 401 || 
           error.message?.includes('token') || error.message?.includes('JWT')) {
         console.log('检测到无效令牌错误，执行全面清理');
-        await performComprehensiveCleanup();
+        
+        // 清理所有 supabase 相关存储
+        Object.keys(localStorage).forEach(key => {
+          if (key.includes('supabase') || key.includes('sb-') || key.includes('auth')) {
+            localStorage.removeItem(key);
+          }
+        });
       }
       
       return { success: false, error, session: null };
@@ -427,73 +425,7 @@ export const recoverSession = async () => {
     }
   } catch (err) {
     console.error('会话恢复过程中出错:', err);
-    // 在捕获到异常时也执行清理
-    await performComprehensiveCleanup();
     return { success: false, error: err as Error, session: null };
-  }
-};
-
-/**
- * 执行全面的会话数据清理
- * 清理所有可能存储会话数据的位置
- */
-const performComprehensiveCleanup = async () => {
-  console.log('开始执行全面的会话数据清理...');
-  
-  try {
-    // 1. 清理 localStorage 中的所有 Supabase 相关数据
-    const localStorageKeys = Object.keys(localStorage);
-    localStorageKeys.forEach(key => {
-      if (key.includes('supabase') || key.includes('sb-') || key.includes('auth') || 
-          key.includes('token') || key.includes('session')) {
-        console.log(`清理 localStorage 项: ${key}`);
-        localStorage.removeItem(key);
-      }
-    });
-    
-    // 2. 清理 sessionStorage 中的所有相关数据
-    const sessionStorageKeys = Object.keys(sessionStorage);
-    sessionStorageKeys.forEach(key => {
-      if (key.includes('supabase') || key.includes('sb-') || key.includes('auth') || 
-          key.includes('token') || key.includes('session')) {
-        console.log(`清理 sessionStorage 项: ${key}`);
-        sessionStorage.removeItem(key);
-      }
-    });
-    
-    // 3. 清理可能的 cookies
-    if (typeof document !== 'undefined') {
-      const cookies = document.cookie.split(';');
-      cookies.forEach(cookie => {
-        const [name] = cookie.split('=');
-        const cookieName = name.trim();
-        if (cookieName.includes('supabase') || cookieName.includes('sb-') || 
-            cookieName.includes('auth') || cookieName.includes('token')) {
-          console.log(`清理 cookie: ${cookieName}`);
-          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
-        }
-      });
-    }
-    
-    // 4. 清理 IndexedDB 中的 Supabase 数据（如果存在）
-    if (typeof window !== 'undefined' && window.indexedDB) {
-      try {
-        const databases = await indexedDB.databases();
-        for (const db of databases) {
-          if (db.name && (db.name.includes('supabase') || db.name.includes('sb-') || db.name.includes('auth'))) {
-            console.log(`清理 IndexedDB: ${db.name}`);
-            indexedDB.deleteDatabase(db.name);
-          }
-        }
-      } catch (indexedDBError) {
-        console.warn('清理 IndexedDB 时出错:', indexedDBError);
-      }
-    }
-    
-    console.log('全面会话数据清理完成');
-  } catch (cleanupError) {
-    console.error('执行全面清理时出错:', cleanupError);
   }
 };
 

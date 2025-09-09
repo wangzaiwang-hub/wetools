@@ -225,34 +225,3 @@ html {
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
 }
-
-/* 确保AI助手悬浮窗能够正确显示 */
-#appflow-chat-container,
-.appflow-chat-container,
-.webchat-container,
-.webchat-bubble-tip,
-[class*="appflow"],
-[id*="appflow"],
-[class*="chatbot"],
-[id*="chatbot"] {
-  z-index: 9999 !important;
-  position: fixed !important;
-  display: block !important;
-}
-
-/* 确保AI助手不会被其他元素遮挡 */
-div[id*="appflow"],
-div[class*="appflow"],
-div[id*="chatbot"],
-div[class*="chatbot"],
-div[class*="webchat"] {
-  z-index: 9999 !important;
-  position: fixed !important;
-}
-
-/* 特别确保悬浮按钮显示 */
-.webchat-bubble-tip {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
