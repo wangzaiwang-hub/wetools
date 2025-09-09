@@ -27,6 +27,9 @@
       setTimeout(() => {
         if (typeof window.APPFLOW_CHAT_SDK === 'undefined') {
           console.error('阿里云Appflow Chat SDK未正确加载，请检查网络连接或脚本地址');
+        } else {
+          console.log('APPFLOW_CHAT_SDK已加载，准备初始化');
+          console.log('APPFLOW_CHAT_SDK对象结构:', Object.keys(window.APPFLOW_CHAT_SDK));
         }
       }, 3000);
       
@@ -36,28 +39,58 @@
         
         if (window.APPFLOW_CHAT_SDK) {
           console.log('开始初始化阿里云Appflow Chat SDK');
+          console.log('APPFLOW_CHAT_SDK对象:', window.APPFLOW_CHAT_SDK);
           
           try {
-            window.APPFLOW_CHAT_SDK.init({
-              integrateConfig: {
-                integrateId: 'cit-623ebc0d2f4b4279bf06',
-                domain: {
-                  requestDomain: 'https://ai.wetools.wctw.fun'  // 改为HTTPS
-                },
-                draggable: true
-              },
-              displayConfig: {
-                zIndex: 9999,
-                position: 'right'
-              },
-              aiChatOptions: {
-                displayOptions: {
-                  defaultMode: 'CHAT_BUBBLE'
-                }
-              }
-            });
+            // 先设置用户信息（如果需要）
+            if (window.APPFLOW_CHAT_SDK.setUser) {
+              window.APPFLOW_CHAT_SDK.setUser({
+                userId: 'anonymous',
+                userName: 'Anonymous User'
+              });
+              console.log('已设置用户信息');
+            }
             
-            console.log('阿里云Appflow Chat SDK初始化成功');
+            // 初始化SDK
+            if (window.APPFLOW_CHAT_SDK.init) {
+              window.APPFLOW_CHAT_SDK.init({
+                integrateConfig: {
+                  integrateId: 'cit-623ebc0d2f4b4279bf06',
+                  domain: {
+                    // 使用相对路径来避免SSL证书问题
+                    requestDomain: window.location.origin
+                  },
+                  draggable: true
+                },
+                displayConfig: {
+                  zIndex: 9999,
+                  position: 'right'
+                },
+                aiChatOptions: {
+                  displayOptions: {
+                    defaultMode: 'CHAT_BUBBLE',
+                    autoShow: true  // 尝试自动显示
+                  }
+                }
+              });
+              
+              console.log('阿里云Appflow Chat SDK初始化成功');
+            } else {
+              console.error('APPFLOW_CHAT_SDK.init方法不存在');
+            }
+            
+            // 初始化后立即尝试显示聊天窗口
+            setTimeout(() => {
+              if (window.APPFLOW_CHAT_SDK.initChat) {
+                // 尝试带参数调用initChat
+                window.APPFLOW_CHAT_SDK.initChat({
+                  visible: true
+                });
+                console.log('已调用APPFLOW_CHAT_SDK.initChat({visible: true})');
+              } else {
+                console.log('APPFLOW_CHAT_SDK.initChat方法不存在');
+              }
+            }, 1000);
           } catch (error) {
             console.error('阿里云Appflow Chat SDK初始化失败:', error);
           }
@@ -74,6 +107,21 @@
         // DOM已经加载完成
         initChatSDK();
       }
+      
+      // 页面完全加载后再次尝试显示聊天窗口
+      window.addEventListener('load', function() {
+        setTimeout(() => {
+          if (window.APPFLOW_CHAT_SDK) {
+            console.log('页面加载完成后检查APPFLOW_CHAT_SDK:', Object.keys(window.APPFLOW_CHAT_SDK));
+            if (window.APPFLOW_CHAT_SDK.initChat) {
+              window.APPFLOW_CHAT_SDK.initChat({
+                visible: true
+              });
+              console.log('页面加载完成后再次调用APPFLOW_CHAT_SDK.initChat({visible: true})');
+            }
+          }
+        }, 2000);
+      });
     </script>
     <!-- 核心 SEO 元标签 -->
     <title>WE Tools - 全球优质软件与网站导航平台 | 效率工具一站式工具箱</title>
@@ -139,8 +187,16 @@
             try {
               // 尝试显示聊天窗口
               if (window.APPFLOW_CHAT_SDK) {
+                // 检查是否有initChat方法（这是最可能的显示方法）
+                if (window.APPFLOW_CHAT_SDK.initChat) {
+                  // 尝试带参数调用initChat
+                  window.APPFLOW_CHAT_SDK.initChat({
+                    visible: true
+                  });
+                  console.log('已调用APPFLOW_CHAT_SDK.initChat({visible: true})');
+                }
                 // 检查是否有show方法
-                if (window.APPFLOW_CHAT_SDK.show) {
+                else if (window.APPFLOW_CHAT_SDK.show) {
                   window.APPFLOW_CHAT_SDK.show();
                   console.log('已调用APPFLOW_CHAT_SDK.show()');
                 } 
@@ -159,10 +215,27 @@
                   window.APPFLOW_CHAT_SDK.launch();
                   console.log('已调用APPFLOW_CHAT_SDK.launch()');
                 }
+                // 检查是否有llmInit方法
+                else if (window.APPFLOW_CHAT_SDK.llmInit) {
+                  window.APPFLOW_CHAT_SDK.llmInit();
+                  console.log('已调用APPFLOW_CHAT_SDK.llmInit()');
+                }
                 else {
                   console.log('APPFLOW_CHAT_SDK没有可用的显示方法');
                   console.log('APPFLOW_CHAT_SDK对象:', window.APPFLOW_CHAT_SDK);
                 }
+                
+                // 检查DOM中是否存在AI助手元素
+                setTimeout(() => {
+                  const chatElements = document.querySelectorAll('[id*="appflow"], [class*="appflow"], [id*="chatbot"], [class*="chatbot"]');
+                  console.log('找到的AI助手相关元素:', chatElements.length);
+                  if (chatElements.length > 0) {
+                    console.log('AI助手元素列表:');
+                    chatElements.forEach((el, index) => {
+                      console.log(`${index}:`, el);
+                    });
+                  }
+                }, 1000);
               } else {
                 console.log('APPFLOW_CHAT_SDK未定义');
               }
