@@ -225,3 +225,20 @@ html {
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
 }
+
+/* 确保AI助手悬浮窗能够正确显示 */
+#appflow-chat-container,
+.appflow-chat-container,
+.webchat-container,
+.webchat-bubble-tip {
+  z-index: 9999 !important;
+  position: fixed !important;
+}
+
+/* 确保AI助手不会被其他元素遮挡 */
+div[id*="appflow"],
+div[class*="appflow"],
+div[id*="chatbot"],
+div[class*="chatbot"] {
+  z-index: 9999 !important;
+}
