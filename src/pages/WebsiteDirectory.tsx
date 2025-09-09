@@ -500,24 +500,6 @@ const WebsiteDirectory = () => {
       <Helmet>
         <title>WE Tools - 网站导航</title>
         <meta name="description" content="发现优质的网站资源，提高您的工作效率和浏览体验" />
-        <script src="https://o.alicdn.com/appflow/chatbot/v1/AppflowChatSDK.js"></script>
-        <script>
-          {`
-            window.addEventListener('load', function() {
-              if (window.APPFLOW_CHAT_SDK) {
-                window.APPFLOW_CHAT_SDK.init({
-                  integrateConfig: {
-                    integrateId: 'cit-623ebc0d2f4b4279bf06',
-                    domain: {
-                      requestDomain: 'http://ai.wetools.wctw.fun'
-                    },
-                    draggable: true
-                  }
-                });
-              }
-            });
-          `}
-        </script>
       </Helmet>
 
       <div className="max-w-7xl mx-auto">
@@ -722,7 +704,7 @@ const WebsiteDirectory = () => {
               <p>微信公众号：wctw.hub</p>
               <div className="mt-4">
                 <img 
-                  src="https://gitee.com/wctw-hub/picture/raw/main/blog/QR.webp" 
+                  src="https://wangzaiwang.oss-cn-beijing.aliyuncs.com/image/QR.webp" 
                   alt="微信公众号二维码" 
                   className="w-32 h-32 mx-auto"
                 />
