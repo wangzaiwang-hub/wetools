@@ -583,24 +583,6 @@ const Home = () => {
       <Helmet>
         <title>WE Tools - 实用工具和网站推荐</title>
         <meta name="description" content="发现最好用的工具和网站资源，轻松找到高效率软件" />
-        <script src="https://o.alicdn.com/appflow/chatbot/v1/AppflowChatSDK.js"></script>
-        <script>
-          {`
-            window.addEventListener('load', function() {
-              if (window.APPFLOW_CHAT_SDK) {
-                window.APPFLOW_CHAT_SDK.init({
-                  integrateConfig: {
-                    integrateId: 'cit-623ebc0d2f4b4279bf06',
-                    domain: {
-                      requestDomain: 'http://ai.wetools.wctw.fun'
-                    },
-                    draggable: true
-                  }
-                });
-              }
-            });
-          `}
-        </script>
       </Helmet>
 
       <SupabaseStatusChecker show={showNetworkWarning} />
@@ -891,7 +873,7 @@ const Home = () => {
               </button>
               <div className="w-80 h-80 bg-white border border-gray-200 rounded-xl overflow-hidden mx-auto">
                 <img 
-                  src="https://gitee.com/wctw-hub/picture/raw/main/blog/AliPay.webp" 
+                  src="https://wangzaiwang.oss-cn-beijing.aliyuncs.com/image/9c0c4bdd748fa6664b4a26ce3526eb0.webp" 
                   alt="支付宝二维码" 
                   className="w-full h-full object-contain"
                 />
@@ -908,7 +890,7 @@ const Home = () => {
               </button>
               <div className="w-80 h-80 bg-white border border-gray-200 rounded-xl overflow-hidden mx-auto">
                 <img 
-                  src="https://gitee.com/wctw-hub/picture/raw/main/blog/wechatPay.webp" 
+                  src="https://wangzaiwang.oss-cn-beijing.aliyuncs.com/image/a8cf1b0f2dd7f933812ecf87d2bf7d9.webp" 
                   alt="微信支付二维码" 
                   className="w-full h-full object-contain"
                 />
@@ -944,7 +926,7 @@ const Home = () => {
               <p>微信公众号：wctw.hub</p>
               <div className="mt-4">
                 <img 
-                  src="https://gitee.com/wctw-hub/picture/raw/main/blog/QR.webp" 
+                  src="https://wangzaiwang.oss-cn-beijing.aliyuncs.com/image/QR.webp" 
                   alt="微信公众号二维码" 
                   className="w-32 h-32 mx-auto"
                 />
