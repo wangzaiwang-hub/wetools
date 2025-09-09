@@ -11,7 +11,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import MessageBoard from '../components/MessageBoard';
 import { DEFAULT_PREFERENCES } from '../contexts/AuthContext';
-import AIAssistant from '../components/AIAssistant';
 import { Helmet } from 'react-helmet';
 import SupabaseStatusChecker from '../components/SupabaseStatusChecker';
 import { useChatbot } from '../contexts/ChatbotContext';
