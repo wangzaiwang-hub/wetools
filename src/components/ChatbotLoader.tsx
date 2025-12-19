@@ -62,11 +62,11 @@ const ChatbotLoader: React.FC<ChatbotLoaderProps> = ({
           loadAttempts.current += 1;
           console.log('ChatbotLoader 第', loadAttempts.current, '次尝试加载聊天机器人');
           
-          // 检查Appflow Chatbot是否已初始化
-          if (!(window as any).APPFLOW_CHAT_SDK || !(window as any).APPFLOW_CHAT_SDK.isInitialized) {
+          // 检查聊天机器人是否已存在，如果存在则不再尝试
+          if (!document.querySelector('.webchat-container') && !document.querySelector('.webchat-bubble-tip')) {
             loadChatbot(conversationStarters);
           } else {
-            console.log('ChatbotLoader Appflow Chatbot已初始化，停止尝试');
+            console.log('ChatbotLoader 聊天机器人已存在，停止尝试');
             clearInterval(interval);
           }
         } else {
@@ -87,4 +87,4 @@ const ChatbotLoader: React.FC<ChatbotLoaderProps> = ({
   return null;
 };
 
-export default ChatbotLoader;
+export default ChatbotLoader; 
