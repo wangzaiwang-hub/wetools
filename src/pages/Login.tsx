@@ -11,7 +11,7 @@ const QQLoginButton = () => {
   const navigate = useNavigate();
   
   // 使用正确的回调URI
-  const redirectUri = encodeURIComponent('https://wetools.wctw.fun/auth/qq-callback');
+  const redirectUri = encodeURIComponent('https://wetools.wctw.top/auth/qq-callback');
   
   const handleQQLogin = () => {
     // 生成随机state防止CSRF攻击
