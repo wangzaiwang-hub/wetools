@@ -15,7 +15,7 @@ const sanitizeNickname = (name: string | null | undefined): string => {
 // QQ应用信息 - 从环境变量中获取
 const QQ_APP_ID = import.meta.env.VITE_QQ_APP_ID || '102761649'; 
 // const QQ_APP_KEY = 'wlRvDKG2g5E8nGYe'; // APP KEY 通常用于后端
-const QQ_REDIRECT_URI = import.meta.env.VITE_QQ_REDIRECT_URI || 'https://wetools.wctw.fun/auth/qq-callback';
+const QQ_REDIRECT_URI = import.meta.env.VITE_QQ_REDIRECT_URI || 'https://wetools.wctw.top/auth/qq-callback';
 
 // 添加日志记录器
 const logQQConnect = (message: string, data?: any) => {
